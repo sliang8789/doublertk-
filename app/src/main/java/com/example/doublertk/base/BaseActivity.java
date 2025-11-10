@@ -1,8 +1,11 @@
 package com.example.doublertk.base;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -10,13 +13,19 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.doublertk.R;
+import com.example.doublertk.view.NavigationActivity;
+
 /**
  * BaseActivity - 所有Activity的基类
  * 功能：
  * 1. 自动隐藏系统状态栏和导航栏
  * 2. 使用EdgeToEdge全屏布局
+ * 3. 提供通用的底部导航栏功能
  */
 public abstract class BaseActivity extends AppCompatActivity {
+
+    private static final String TAG = "BaseActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +47,9 @@ public abstract class BaseActivity extends AppCompatActivity {
         
         // 初始化视图
         initView();
+        
+        // 初始化底部导航栏
+        initBottomBar();
     }
 
     /**
@@ -51,6 +63,59 @@ public abstract class BaseActivity extends AppCompatActivity {
      */
     protected void initView() {
         // 子类可选择性实现
+    }
+
+    /**
+     * 初始化底部导航栏
+     * 如果布局中包含 bottom_bar，则自动初始化返回按钮和设置按钮
+     */
+    protected void initBottomBar() {
+        // 查找底部导航栏
+        View bottomBar = findViewById(R.id.bottom_bar);
+        if (bottomBar == null) {
+            // 底部导航栏不存在是正常的，某些页面可能不需要
+            return;
+        }
+
+        // 初始化返回按钮
+        ImageView backButton = bottomBar.findViewById(R.id.back_button);
+        if (backButton != null) {
+            backButton.setOnClickListener(v -> {
+                Log.d(TAG, "Back button clicked");
+                onBackButtonClicked();
+            });
+        }
+
+        // 初始化设置按钮
+        ImageView toolSettings = bottomBar.findViewById(R.id.tool_settings);
+        if (toolSettings != null) {
+            toolSettings.setClickable(true);
+            toolSettings.setOnClickListener(v -> {
+                Log.d(TAG, "Settings button clicked");
+                onSettingsButtonClicked();
+            });
+        }
+    }
+
+    /**
+     * 返回按钮点击事件
+     * 默认行为是关闭当前Activity，子类可以重写此方法自定义行为
+     */
+    protected void onBackButtonClicked() {
+        finish();
+    }
+
+    /**
+     * 设置按钮点击事件
+     * 默认行为是跳转到导航界面，子类可以重写此方法自定义行为
+     */
+    protected void onSettingsButtonClicked() {
+        try {
+            Intent intent = new Intent(this, NavigationActivity.class);
+            startActivity(intent);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to navigate to NavigationActivity", e);
+        }
     }
 
     /**

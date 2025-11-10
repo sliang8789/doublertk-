@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Doublertk">
         <activity
-            android:name=".MainActivity"
+            android:name=".view.NavigationActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -20,6 +20,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".view.EmptyActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.PointMeasureMenuActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.PointMeasureMainActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.PointLibraryActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
