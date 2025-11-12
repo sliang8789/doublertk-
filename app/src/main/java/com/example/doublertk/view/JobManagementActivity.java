@@ -12,7 +12,7 @@ public class JobManagementActivity extends BaseActivity {
 
     @Override
     protected void initView() {
-        // 当前仅展示两个中心卡片，无额外逻辑
+        setTopBarTitle(R.string.job_management_title);
     }
 }
 
