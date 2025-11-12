@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,11 +22,15 @@ import com.example.doublertk.view.NavigationActivity;
  * 功能：
  * 1. 自动隐藏系统状态栏和导航栏
  * 2. 使用EdgeToEdge全屏布局
- * 3. 提供通用的底部导航栏功能
+ * 3. 提供通用的顶部导航栏功能（统一管理标题）
+ * 4. 提供通用的底部导航栏功能（返回按钮和设置按钮）
  */
 public abstract class BaseActivity extends AppCompatActivity {
 
     private static final String TAG = "BaseActivity";
+    
+    // 顶部导航栏标题TextView的引用
+    private TextView topBarTitleView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +50,9 @@ public abstract class BaseActivity extends AppCompatActivity {
         // 设置WindowInsets监听，确保内容不被系统栏遮挡
         setupWindowInsets();
         
+        // 初始化顶部导航栏
+        initTopBar();
+        
         // 初始化视图
         initView();
         
@@ -63,6 +71,89 @@ public abstract class BaseActivity extends AppCompatActivity {
      */
     protected void initView() {
         // 子类可选择性实现
+    }
+
+    /**
+     * 初始化顶部导航栏
+     * 自动查找并初始化顶部导航栏的标题TextView
+     * 支持多种布局方式：header、top_bar 或直接包含 title 的布局
+     */
+    protected void initTopBar() {
+        // 尝试多种方式查找顶部导航栏的标题TextView
+        // 方式1: 通过 header (include layout_top_bar 时常用的ID)
+        View headerView = findViewById(R.id.header);
+        if (headerView != null) {
+            topBarTitleView = headerView.findViewById(R.id.title);
+            if (topBarTitleView != null) {
+                Log.d(TAG, "Top bar title found via header");
+                return;
+            }
+        }
+
+        // 方式2: 通过 top_bar (layout_top_bar.xml 的根ID)
+        View topBarView = findViewById(R.id.top_bar);
+        if (topBarView != null) {
+            topBarTitleView = topBarView.findViewById(R.id.title);
+            if (topBarTitleView != null) {
+                Log.d(TAG, "Top bar title found via top_bar");
+                return;
+            }
+        }
+
+        // 方式3: 通过 app_bar (某些布局使用的ID)
+        View appBarView = findViewById(R.id.app_bar);
+        if (appBarView != null) {
+            topBarTitleView = appBarView.findViewById(R.id.title);
+            if (topBarTitleView != null) {
+                Log.d(TAG, "Top bar title found via app_bar");
+                return;
+            }
+        }
+
+        // 方式4: 直接查找 title (某些布局可能直接包含 title)
+        topBarTitleView = findViewById(R.id.title);
+        if (topBarTitleView != null) {
+            Log.d(TAG, "Top bar title found directly");
+            return;
+        }
+
+        // 顶部导航栏不存在是正常的，某些页面可能不需要
+        Log.d(TAG, "Top bar not found, this is normal for some activities");
+    }
+
+    /**
+     * 设置顶部导航栏标题
+     * @param title 标题文本
+     */
+    protected void setTopBarTitle(String title) {
+        if (topBarTitleView != null) {
+            topBarTitleView.setText(title);
+            Log.d(TAG, "Top bar title set to: " + title);
+        } else {
+            Log.w(TAG, "Cannot set top bar title: title view not found");
+        }
+    }
+
+    /**
+     * 设置顶部导航栏标题（通过资源ID）
+     * @param titleResId 标题文本资源ID
+     */
+    protected void setTopBarTitle(int titleResId) {
+        if (topBarTitleView != null) {
+            topBarTitleView.setText(titleResId);
+            Log.d(TAG, "Top bar title set to resource: " + titleResId);
+        } else {
+            Log.w(TAG, "Cannot set top bar title: title view not found");
+        }
+    }
+
+    /**
+     * 获取顶部导航栏标题TextView
+     * 子类可以通过此方法获取标题TextView进行自定义操作
+     * @return 标题TextView，如果不存在则返回null
+     */
+    protected TextView getTopBarTitleView() {
+        return topBarTitleView;
     }
 
     /**

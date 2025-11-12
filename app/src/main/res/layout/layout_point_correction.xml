@@ -1,0 +1,516 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#f5f5f5">
+
+    <!-- 主要内容区域（横向布局） -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:paddingRight="16dp"
+        android:paddingBottom="16dp">
+
+        <!-- 左侧面板 -->
+        <LinearLayout
+            android:id="@+id/left_panel"
+            android:layout_width="150dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_marginRight="16dp">
+
+        <!-- 上区域：已知点列表（可滚动） -->
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:id="@+id/container_known_points"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tv_known_point_1"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:gravity="center_vertical"
+                    android:paddingStart="16dp"
+                    android:background="@drawable/bg_known_point_selected"
+                    android:text="控制点1"
+                    android:drawableStart="@drawable/ic_point_selected"
+                    android:drawablePadding="8dp"
+                    style="@style/Black16Text" />
+
+                <TextView
+                    android:id="@+id/tv_known_point_2"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:gravity="center_vertical"
+                    android:paddingStart="16dp"
+                    android:background="@drawable/bg_known_point_unselected"
+                    android:text="控制点2"
+                    android:drawableStart="@drawable/ic_point_unselected"
+                    android:drawablePadding="8dp"
+                    style="@style/Black16Text" />
+
+            </LinearLayout>
+        </ScrollView>
+
+        <!-- 下区域：操作按钮（固定在底部） -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <!-- 计算按钮 -->
+            <Button
+                android:id="@+id/btn_calc_point"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/bg_button_default"
+                android:text="计算"
+                android:textColor="@android:color/black"
+                android:textSize="18sp" />
+
+            <!-- 添加按钮 -->
+            <Button
+                android:id="@+id/btn_add_point"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_button_add"
+                android:text="+"
+                android:textColor="@android:color/black"
+                android:textSize="24sp" />
+
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 右侧内容区 -->
+    <LinearLayout
+        android:id="@+id/right_panel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!-- 已知点标题和下拉选择 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="控制点"
+                android:textSize="16sp"
+                android:textColor="@android:color/black" />
+
+            <Spinner
+                android:id="@+id/spinner_coordinate_type"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:layout_marginLeft="16dp"
+                android:background="@drawable/bg_spinner" />
+        </LinearLayout>
+        <!-- 已知点坐标卡片 -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            app:cardUseCompatPadding="true"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <!-- 左侧坐标输入区域 -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:padding="8dp">
+
+                    <!-- N(X) 坐标 -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <TextView
+                            android:id="@+id/tv_coord_label_1"
+                            android:layout_width="60dp"
+                            android:layout_height="wrap_content"
+                            android:text="北(X)"
+                            android:textSize="16sp"
+                            android:textColor="@android:color/black" />
+
+                        <EditText
+                            android:id="@+id/et_known_n"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_weight="1"
+                            android:layout_marginLeft="16dp"
+                            android:gravity="center"
+                            android:background="@drawable/bg_edittext_bottom_line"
+                            android:hint="0.000"
+                            android:inputType="numberDecimal|numberSigned"
+                            android:padding="12dp"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="m"
+                            android:textSize="16sp"
+                            android:textColor="@android:color/black"
+                            android:layout_marginLeft="8dp" />
+                    </LinearLayout>
+
+                    <!-- E(Y) 坐标 -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <TextView
+                            android:id="@+id/tv_coord_label_2"
+                            android:layout_width="60dp"
+                            android:layout_height="wrap_content"
+                            android:text="东(Y)"
+                            android:textSize="16sp"
+                            android:textColor="@android:color/black" />
+
+                        <EditText
+                            android:id="@+id/et_known_e"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_weight="1"
+                            android:layout_marginLeft="16dp"
+                            android:gravity="center"
+                            android:background="@drawable/bg_edittext_bottom_line"
+                            android:hint="0.000"
+                            android:inputType="numberDecimal|numberSigned"
+                            android:padding="12dp"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="m"
+                            android:textSize="16sp"
+                            android:textColor="@android:color/black"
+                            android:layout_marginLeft="8dp" />
+                    </LinearLayout>
+
+                    <!-- H(Z) 坐标 -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:id="@+id/tv_coord_label_3"
+                            android:layout_width="60dp"
+                            android:layout_height="wrap_content"
+                            android:text="高(Z)"
+                            android:textSize="16sp"
+                            android:textColor="@android:color/black" />
+
+                        <EditText
+                            android:id="@+id/et_known_h"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_weight="1"
+                            android:layout_marginLeft="16dp"
+                            android:gravity="center"
+                            android:background="@drawable/bg_edittext_no_border"
+                            android:hint="0.000"
+                            android:inputType="numberDecimal|numberSigned"
+                            android:padding="12dp"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="m"
+                            android:textSize="16sp"
+                            android:textColor="@android:color/black"
+                            android:layout_marginLeft="8dp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- 竖线分隔 -->
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"
+                    android:background="#CCCCCC"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- 右侧重置按钮区域 -->
+                <LinearLayout
+                    android:layout_width="80dp"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:gravity="center">
+
+                    <TextView
+                        android:id="@+id/btn_reset_known_point"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="重置"
+                        android:textSize="18sp"
+                        android:textColor="@android:color/black"
+                        android:padding="8dp"
+                        android:clickable="true"
+                        android:focusable="true" />
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- 测量点标题 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="4dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="测量点"
+                android:textSize="16sp"
+                android:textColor="@android:color/black" />
+        </LinearLayout>
+
+        <!-- 测量点坐标卡片 -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            app:cardUseCompatPadding="true"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <!-- 左侧坐标输入区域 -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:padding="8dp">
+
+                    <!-- L 坐标 -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <TextView
+                            android:layout_width="60dp"
+                            android:layout_height="wrap_content"
+                            android:text="L(经度)"
+                            android:textSize="16sp"
+                            android:textColor="@android:color/black" />
+
+                        <EditText
+                            android:id="@+id/et_measured_l"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_weight="1"
+                            android:layout_marginLeft="16dp"
+                            android:gravity="center"
+                            android:background="@drawable/bg_edittext_bottom_line"
+                            android:hint="000.000000000"
+                            android:inputType="numberDecimal|numberSigned"
+                            android:padding="12dp"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="   "
+                            android:textSize="16sp"
+                            android:textColor="@android:color/black"
+                            android:layout_marginLeft="8dp" />
+                    </LinearLayout>
+
+                    <!-- B 坐标 -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="60dp"
+                            android:layout_height="wrap_content"
+                            android:text="B(纬度)"
+                            android:textColor="@android:color/black"
+                            android:textSize="16sp" />
+
+                        <EditText
+                            android:id="@+id/et_measured_b"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_marginLeft="16dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_edittext_bottom_line"
+                            android:gravity="center"
+                            android:hint="00.000000000"
+                            android:inputType="numberDecimal|numberSigned"
+                            android:padding="12dp"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="8dp"
+                            android:text="   "
+                            android:textColor="@android:color/black"
+                            android:textSize="16sp" />
+                    </LinearLayout>
+
+                    <!-- H 坐标 -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="60dp"
+                            android:layout_height="wrap_content"
+                            android:text="H(高)"
+                            android:textSize="16sp"
+                            android:textColor="@android:color/black" />
+
+                        <EditText
+                            android:id="@+id/et_measured_h"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_weight="1"
+                            android:layout_marginLeft="16dp"
+                            android:gravity="center"
+                            android:background="@drawable/bg_edittext_no_border"
+                            android:hint="0.000"
+                            android:inputType="numberDecimal|numberSigned"
+                            android:padding="12dp"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="m"
+                            android:textSize="16sp"
+                            android:textColor="@android:color/black"
+                            android:layout_marginLeft="8dp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- 竖线分隔 -->
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"
+                    android:background="#CCCCCC"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- 右侧重置按钮区域 -->
+                <LinearLayout
+                    android:layout_width="80dp"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:gravity="center">
+
+                    <Button
+                        android:id="@+id/btn_collect_rtk_data"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="采集"
+                        android:textSize="16sp"
+                        android:textColor="@android:color/white"
+                        android:backgroundTint="@color/black"
+                        android:layout_marginBottom="8dp"/>
+
+                    <Button
+                        android:id="@+id/btn_collect_rtk"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="导入"
+                        android:textSize="16sp"
+                        android:textColor="@android:color/white"
+                        android:backgroundTint="@color/black"
+                        android:layout_marginBottom="8dp"/>
+
+                    <TextView
+                        android:id="@+id/btn_reset_measured_point"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="重置"
+                        android:textSize="18sp"
+                        android:textColor="@android:color/black"
+                        android:padding="8dp"
+                        android:clickable="true"
+                        android:focusable="true" />
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- 保存按钮 -->
+        <Button
+            android:id="@+id/btn_save_point"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/black"
+            android:text="保存"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            android:layout_marginTop="4dp" />
+
+    </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- 底部导航栏 -->
+    <include
+        android:id="@+id/bottom_bar"
+        layout="@layout/layout_bottom_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>

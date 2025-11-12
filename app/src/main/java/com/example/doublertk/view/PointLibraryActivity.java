@@ -1,8 +1,6 @@
 package com.example.doublertk.view;
 
-import android.view.View;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import com.example.doublertk.R;
 import com.example.doublertk.base.BaseActivity;
@@ -13,7 +11,6 @@ import com.example.doublertk.base.BaseActivity;
 public class PointLibraryActivity extends BaseActivity {
 
     private ListView listView;
-    private TextView titleView;
 
     @Override
     protected int getLayoutId() {
@@ -22,14 +19,8 @@ public class PointLibraryActivity extends BaseActivity {
 
     @Override
     protected void initView() {
-        // 设置标题
-        View headerView = findViewById(R.id.header);
-        if (headerView != null) {
-            titleView = headerView.findViewById(R.id.title);
-            if (titleView != null) {
-                titleView.setText("点库查看");
-            }
-        }
+        // 设置顶部导航栏标题（使用父类提供的方法）
+        setTopBarTitle("点库查看");
 
         // 初始化列表视图
         listView = findViewById(R.id.list);

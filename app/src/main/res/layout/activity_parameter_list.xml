@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F5F5F5">
+
+    <!-- 顶部导航栏 -->
+    <include
+        android:id="@+id/header"
+        layout="@layout/layout_top_bar" />
+
+    <!-- 主要内容区域 -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <!-- 坐标系列表 -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_parameter_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/bottom_button_layout"
+            android:layout_marginTop="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="16dp"
+            android:clipToPadding="false"
+            android:paddingBottom="8dp" />
+
+        <!-- 底部按钮区域 -->
+        <LinearLayout
+            android:id="@+id/bottom_button_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/bottom_bar"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:gravity="center"
+            android:background="@android:color/transparent">
+
+            <!-- 删除按钮 -->
+            <Button
+                android:id="@+id/btn_delete"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_weight="1"
+                android:layout_marginRight="4dp"
+                android:backgroundTint="@color/white"
+                android:drawableLeft="@drawable/ic_delete"
+                android:drawablePadding="8dp"
+                android:gravity="center"
+                android:text="删除"
+                android:textColor="@android:color/black"
+                android:textSize="16sp" />
+
+            <!-- 新增按钮 -->
+            <Button
+                android:id="@+id/btn_add"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_weight="1"
+                android:layout_marginLeft="4dp"
+                android:layout_marginRight="4dp"
+                android:backgroundTint="@color/white"
+                android:drawableLeft="@drawable/ic_add"
+                android:drawablePadding="8dp"
+                android:gravity="center"
+                android:text="新增"
+                android:textColor="@android:color/black"
+                android:textSize="16sp" />
+
+            <!-- 导出按钮 -->
+<!--            <Button-->
+<!--                android:id="@+id/btn_export"-->
+<!--                android:layout_width="0dp"-->
+<!--                android:layout_height="60dp"-->
+<!--                android:layout_weight="1"-->
+<!--                android:layout_marginLeft="4dp"-->
+<!--                android:layout_marginRight="4dp"-->
+<!--                android:backgroundTint="@color/white"-->
+<!--                android:drawableLeft="@drawable/ic_export"-->
+<!--                android:drawablePadding="8dp"-->
+<!--                android:gravity="center"-->
+<!--                android:text="导出"-->
+<!--                android:textColor="@android:color/black"-->
+<!--                android:textSize="16sp" />-->
+
+            <!-- 应用按钮 -->
+            <Button
+                android:id="@+id/btn_apply"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_weight="1"
+                android:layout_marginLeft="4dp"
+                android:layout_marginRight="4dp"
+                android:backgroundTint="#000000"
+                android:drawableLeft="@drawable/ic_check"
+                android:drawablePadding="8dp"
+                android:gravity="center"
+                android:text="应用"
+                android:textColor="@android:color/white"
+                android:textSize="16sp" />
+
+        </LinearLayout>
+
+        <!-- 底部导航栏 -->
+        <include
+            android:id="@+id/bottom_bar"
+            layout="@layout/layout_bottom_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true" />
+
+    </RelativeLayout>
+
+</LinearLayout>

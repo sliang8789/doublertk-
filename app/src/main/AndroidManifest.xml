@@ -32,6 +32,18 @@
         <activity
             android:name=".view.PointLibraryActivity"
             android:exported="false" />
+        <activity
+            android:name=".view.ParameterListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.ParameterSettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.PointCorrectionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.JobManagementActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

@@ -161,22 +161,6 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- 版权信息 -->
-    <TextView
-        android:id="@+id/copyright_text"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="长河智能@www.01Nav.com"
-        android:textColor="#999999"
-        android:textSize="12sp"
-        android:gravity="center"
-        android:paddingVertical="8dp"
-        android:background="#F9F9F9"
-        app:layout_constraintWidth_percent="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/bottom_bar" />
-
     <!-- 底部工具栏 -->
     <include
         android:id="@+id/bottom_bar"

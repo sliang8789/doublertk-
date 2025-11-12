@@ -129,7 +129,7 @@ public class PointMeasureMainActivity extends BaseActivity {
         spinnerMeasureMode.setSelection(0);
         spinnerMeasureMode.setEnabled(false);
         spinnerMeasureMode.setClickable(false);
-
+        
         // 保存默认测量方式
         SharedPreferences sp = getSharedPreferences("measure_prefs", MODE_PRIVATE);
         sp.edit().putString("mode", "rod").apply();
@@ -307,7 +307,7 @@ public class PointMeasureMainActivity extends BaseActivity {
     private double[] getProjectedCoordinate(double lon, double lat, Object cs) {
         // TODO: 需要 CoordinateSystem 等类实现后才能使用
         Log.d("PointMeasure", "getProjectedCoordinate: 功能待实现");
-        return null;
+            return null;
     }
 
     

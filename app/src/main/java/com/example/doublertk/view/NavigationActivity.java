@@ -36,8 +36,7 @@ public class NavigationActivity extends BaseActivity {
         MaterialCardView cardCoordinateSystem = findViewById(R.id.card_coordinate_system);
         if (cardCoordinateSystem != null) {
             cardCoordinateSystem.setOnClickListener(v -> {
-                Intent intent = new Intent(NavigationActivity.this, EmptyActivity.class);
-                intent.putExtra(EmptyActivity.EXTRA_TITLE, "坐标系统");
+					Intent intent = new Intent(NavigationActivity.this, ParameterListActivity.class);
                 startActivity(intent);
             });
         }
@@ -46,8 +45,7 @@ public class NavigationActivity extends BaseActivity {
         MaterialCardView cardJobManagement = findViewById(R.id.card_job_management);
         if (cardJobManagement != null) {
             cardJobManagement.setOnClickListener(v -> {
-                Intent intent = new Intent(NavigationActivity.this, EmptyActivity.class);
-                intent.putExtra(EmptyActivity.EXTRA_TITLE, "作业管理");
+                Intent intent = new Intent(NavigationActivity.this, JobManagementActivity.class);
                 startActivity(intent);
             });
         }

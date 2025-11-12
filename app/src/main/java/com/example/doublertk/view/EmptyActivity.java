@@ -1,7 +1,6 @@
 package com.example.doublertk.view;
 
 import android.os.Bundle;
-import android.widget.TextView;
 
 import com.example.doublertk.R;
 import com.example.doublertk.base.BaseActivity;
@@ -17,13 +16,10 @@ public class EmptyActivity extends BaseActivity {
 
     @Override
     protected void initView() {
-        // 获取传递的标题
+        // 获取传递的标题并设置（使用父类提供的方法）
         String title = getIntent().getStringExtra(EXTRA_TITLE);
         if (title != null && !title.isEmpty()) {
-            TextView titleView = findViewById(R.id.title);
-            if (titleView != null) {
-                titleView.setText(title);
-            }
+            setTopBarTitle(title);
         }
     }
 }
