@@ -5,5 +5,6 @@
     <color name="text_gray_dark">#FF666666</color>
     <color name="pink_action">#FFFBC6D6</color>
     <color name="purple_500">#FF9C27B0</color>
+    <color name="blue_primary">#2196F3</color>
     <color name="gray_background">#F5F5F5</color>
 </resources>
