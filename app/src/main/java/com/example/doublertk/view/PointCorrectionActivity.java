@@ -16,7 +16,7 @@ public class PointCorrectionActivity extends BaseActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		// 设置顶部导航栏标题（使用父类提供的方法）
-		setTopBarTitle("点校正");
+		setTopBarTitle("点矫正");
 	}
 }
 
