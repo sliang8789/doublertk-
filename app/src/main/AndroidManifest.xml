@@ -21,7 +21,13 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".view.EmptyActivity"
+            android:name=".view.StartGuideActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.RadioDifferentialActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.SettingsActivity"
             android:exported="false" />
         <activity
             android:name=".view.PointMeasureMenuActivity"

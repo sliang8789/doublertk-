@@ -6,13 +6,6 @@
     android:orientation="vertical"
     android:background="#f5f5f5">
 
-    <!-- 顶部导航栏 -->
-    <include
-        android:id="@+id/header"
-        layout="@layout/layout_top_bar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
     <!-- 主要内容区域（横向布局） -->
     <LinearLayout
         android:layout_width="match_parent"
@@ -512,12 +505,4 @@
     </LinearLayout>
 
     </LinearLayout>
-
-    <!-- 底部导航栏 -->
-    <include
-        android:id="@+id/bottom_bar"
-        layout="@layout/layout_bottom_bar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
 </LinearLayout>

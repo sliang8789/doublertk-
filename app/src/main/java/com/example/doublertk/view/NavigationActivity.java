@@ -54,8 +54,7 @@ public class NavigationActivity extends BaseActivity {
         MaterialCardView cardGuide = findViewById(R.id.card_guide);
         if (cardGuide != null) {
             cardGuide.setOnClickListener(v -> {
-                Intent intent = new Intent(NavigationActivity.this, EmptyActivity.class);
-                intent.putExtra(EmptyActivity.EXTRA_TITLE, "开始引导");
+                Intent intent = new Intent(NavigationActivity.this, StartGuideActivity.class);
                 startActivity(intent);
             });
         }
@@ -73,8 +72,7 @@ public class NavigationActivity extends BaseActivity {
         MaterialCardView cardRadioDifferential = findViewById(R.id.card_radio_differential);
         if (cardRadioDifferential != null) {
             cardRadioDifferential.setOnClickListener(v -> {
-                Intent intent = new Intent(NavigationActivity.this, EmptyActivity.class);
-                intent.putExtra(EmptyActivity.EXTRA_TITLE, "电台差分");
+                Intent intent = new Intent(NavigationActivity.this, RadioDifferentialActivity.class);
                 startActivity(intent);
             });
         }
@@ -83,8 +81,7 @@ public class NavigationActivity extends BaseActivity {
         MaterialCardView cardSettings = findViewById(R.id.card_settings);
         if (cardSettings != null) {
             cardSettings.setOnClickListener(v -> {
-                Intent intent = new Intent(NavigationActivity.this, EmptyActivity.class);
-                intent.putExtra(EmptyActivity.EXTRA_TITLE, "设置");
+                Intent intent = new Intent(NavigationActivity.this, SettingsActivity.class);
                 startActivity(intent);
             });
         }

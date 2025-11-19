@@ -3,7 +3,7 @@
     <!-- 卡片文本字体大小：基于屏幕尺寸的百分比 -->
     <!-- 使用较大的字体大小，自适应屏幕尺寸 -->
     <!-- sp单位会自动根据用户的字体大小偏好和屏幕密度缩放 -->
-    <dimen name="card_text_size_chinese">25sp</dimen>
-    <dimen name="card_text_size_english">20sp</dimen>
+    <dimen name="card_text_size_chinese">20sp</dimen>
+    <dimen name="card_text_size_english">16sp</dimen>
 </resources>
 
