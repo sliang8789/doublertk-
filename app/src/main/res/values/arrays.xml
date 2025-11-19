@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="coordinate_types">
+        <item>N/E/H</item>
+        <item>X/Y/Z</item>
+        <item>B/L/H</item>
+    </string-array>
+</resources>
+
