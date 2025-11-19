@@ -10,10 +10,13 @@
 
     <ImageView
         android:id="@+id/back_button"
-        android:layout_width="26dp"
-        android:layout_height="26dp"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:padding="10dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:scaleType="centerInside"
         android:src="@android:drawable/ic_menu_revert"
-        android:tint="@color/white"
+        app:tint="@color/text_gray_dark"
         android:contentDescription="返回"
         android:clickable="true"
         android:focusable="true"
@@ -24,10 +27,13 @@
 
     <ImageView
         android:id="@+id/tool_settings"
-        android:layout_width="26dp"
-        android:layout_height="26dp"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:padding="10dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:scaleType="centerInside"
         android:src="@drawable/ic_settings"
-        android:tint="@color/white"
+        app:tint="@color/text_gray_dark"
         android:contentDescription="设置"
         android:clickable="true"
         android:focusable="true"
