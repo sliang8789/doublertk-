@@ -11,9 +11,7 @@
     <!-- 引用全局顶部导航栏 -->
     <include
         android:id="@+id/app_bar"
-        layout="@layout/app_bar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        layout="@layout/layout_top_bar"
         app:layout_constraintTop_toTopOf="parent" />
 
     <!-- 左侧边界GuideLine -->
