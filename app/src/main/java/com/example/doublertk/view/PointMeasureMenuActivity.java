@@ -26,6 +26,11 @@ public class PointMeasureMenuActivity extends BaseActivity {
         return R.layout.activity_point_measure_menu;
     }
 
+    @Override
+    protected void initView() {
+        setTopBarTitle("点测量");
+    }
+
     // 强大的沉浸式模式实现
     private void enableImmersiveMode() {
         try {

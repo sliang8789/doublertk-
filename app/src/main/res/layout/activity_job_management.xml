@@ -13,6 +13,8 @@
     <include
         android:id="@+id/app_bar"
         layout="@layout/layout_top_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -37,17 +39,17 @@
                 android:id="@+id/card_create_job"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 app:cardBackgroundColor="@color/white"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="4dp"
                 app:strokeWidth="0dp">
 
-                <LinearLayout
+                    <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                        android:padding="10dp">
 
                     <TextView
                         android:id="@+id/text_create_job_title"
@@ -55,7 +57,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/job_create_section_title"
                         android:textColor="@color/black"
-                        android:textSize="18sp"
+                        android:textSize="16sp"
                         android:textStyle="bold" />
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -63,12 +65,17 @@
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp">
+                        android:layout_marginTop="10dp">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/input_job_name"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:minHeight="32dp"
+                            android:paddingStart="5dp"
+                            android:paddingEnd="0dp"
+                            android:paddingTop="4dp"
+                            android:paddingBottom="4dp"
                             android:hint="@string/job_name_hint"
                             android:imeOptions="actionDone"
                             android:inputType="textCapSentences" />
@@ -78,26 +85,27 @@
                         android:id="@+id/label_job_time"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="8dp"
                         android:text="@string/job_time_label_auto"
                         android:textColor="@color/text_gray_dark"
-                        android:textSize="14sp" />
+                        android:textSize="13sp" />
 
                     <TextView
                         android:id="@+id/text_job_time_value"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:padding="12dp"
+                        android:layout_marginTop="2dp"
+                        android:padding="8dp"
                         android:background="@drawable/bg_input_field"
                         android:textColor="@color/black"
-                        android:textSize="16sp" />
+                        android:textSize="14sp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/button_save_job"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
+                        android:layout_marginTop="10dp"
+                        android:minHeight="40dp"
                         android:text="@string/job_save_button"
                         android:backgroundTint="@color/blue_primary"
                         android:textColor="@android:color/white" />
@@ -138,6 +146,8 @@
     <include
         android:id="@+id/bottom_bar"
         layout="@layout/layout_bottom_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

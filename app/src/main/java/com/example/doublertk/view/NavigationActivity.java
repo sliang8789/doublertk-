@@ -15,6 +15,7 @@ public class NavigationActivity extends BaseActivity {
 
     @Override
     protected void initView() {
+        setTopBarTitle("功能导航");
         // 为每个卡片添加点击事件
         setupCardClickListeners();
     }
