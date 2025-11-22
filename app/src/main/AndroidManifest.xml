@@ -48,6 +48,9 @@
             android:name=".view.PointCorrectionActivity"
             android:exported="false" />
         <activity
+            android:name=".view.StartbootingActivity"
+            android:exported="false" />
+        <activity
             android:name=".view.JobManagementActivity"
             android:exported="false" />
     </application>

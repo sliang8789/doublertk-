@@ -6,7 +6,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/gray_background"
-    android:theme="@style/Theme.AppCompat.Light.NoActionBar"
     tools:context=".view.JobManagementActivity">
 
     <!-- 引用全局顶部导航栏 -->
@@ -15,19 +14,16 @@
         layout="@layout/layout_top_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- 中间内容区域 - 使用ScrollView包装两个功能区域 -->
     <androidx.core.widget.NestedScrollView
-        android:id="@+id/content_scroll"
-        android:layout_width="0dp"
+        android:id="@+id/scroll_view"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
         android:fillViewport="true"
-        app:layout_constraintBottom_toTopOf="@id/bottom_bar"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/app_bar">
+        app:layout_constraintTop_toBottomOf="@id/app_bar"
+        app:layout_constraintBottom_toTopOf="@id/bottom_bar">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -35,122 +31,145 @@
             android:orientation="vertical"
             android:padding="16dp">
 
+            <!-- 新建作业区域 -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/card_create_job"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:cardBackgroundColor="@color/white"
+                android:layout_marginBottom="16dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="4dp"
-                app:strokeWidth="0dp">
+                app:cardBackgroundColor="@color/white">
 
-                    <LinearLayout
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                        android:padding="10dp">
+                    android:padding="16dp">
 
+                    <!-- 标题 -->
                     <TextView
-                        android:id="@+id/text_create_job_title"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/job_create_section_title"
-                        android:textColor="@color/black"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
+                        android:textColor="@android:color/black"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="16dp" />
 
+                    <!-- 作业名称输入 -->
                     <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/input_layout_job_name"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp">
+                        android:layout_marginBottom="12dp"
+                        android:hint="@string/job_name_hint"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/input_job_name"
+                            android:id="@+id/et_job_name"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:minHeight="32dp"
-                            android:paddingStart="5dp"
-                            android:paddingEnd="0dp"
-                            android:paddingTop="4dp"
-                            android:paddingBottom="4dp"
-                            android:hint="@string/job_name_hint"
-                            android:imeOptions="actionDone"
-                            android:inputType="textCapSentences" />
+                            android:inputType="text"
+                            android:maxLines="1" />
+
                     </com.google.android.material.textfield.TextInputLayout>
 
+                    <!-- 作业时间显示（自动记录） -->
                     <TextView
-                        android:id="@+id/label_job_time"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
                         android:text="@string/job_time_label_auto"
-                        android:textColor="@color/text_gray_dark"
-                        android:textSize="13sp" />
+                        android:textColor="#666666"
+                        android:textSize="14sp"
+                        android:layout_marginBottom="4dp" />
 
                     <TextView
-                        android:id="@+id/text_job_time_value"
-                        android:layout_width="match_parent"
+                        android:id="@+id/tv_job_time"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:padding="8dp"
-                        android:background="@drawable/bg_input_field"
-                        android:textColor="@color/black"
-                        android:textSize="14sp" />
+                        android:text=""
+                        android:textColor="@android:color/black"
+                        android:textSize="14sp"
+                        android:layout_marginBottom="16dp" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/button_save_job"
+                    <!-- 保存按钮 -->
+                    <Button
+                        android:id="@+id/btn_save_job"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:minHeight="40dp"
+                        android:layout_height="60dp"
                         android:text="@string/job_save_button"
-                        android:backgroundTint="@color/blue_primary"
-                        android:textColor="@android:color/white" />
+                        android:textColor="@android:color/white"
+                        android:textSize="16sp"
+                        android:backgroundTint="@color/black" />
+
                 </LinearLayout>
+
             </com.google.android.material.card.MaterialCardView>
 
-            <TextView
-                android:id="@+id/text_job_list_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="@string/job_list_title"
-                android:textColor="@color/black"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recycler_jobs"
+            <!-- 作业管理区域 -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_job_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                tools:listitem="@layout/item_job_entry" />
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@color/white">
 
-            <TextView
-                android:id="@+id/text_empty_placeholder"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:gravity="center"
-                android:padding="24dp"
-                android:text="@string/job_empty_state"
-                android:textColor="@color/text_gray_dark"
-                android:textSize="14sp"
-                android:visibility="gone" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <!-- 标题 -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/job_list_title"
+                        android:textColor="@android:color/black"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- 作业列表 -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rv_job_list"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false"
+                        android:clipToPadding="false"
+                        android:paddingBottom="8dp" />
+
+                    <!-- 空状态提示 -->
+                    <TextView
+                        android:id="@+id/tv_empty_state"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/job_empty_state"
+                        android:textColor="#999999"
+                        android:textSize="14sp"
+                        android:gravity="center"
+                        android:padding="32dp"
+                        android:visibility="gone" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
         </LinearLayout>
+
     </androidx.core.widget.NestedScrollView>
 
+    <!-- 引用全局底部导航栏 -->
     <include
         android:id="@+id/bottom_bar"
         layout="@layout/layout_bottom_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

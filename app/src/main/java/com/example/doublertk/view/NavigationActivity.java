@@ -42,7 +42,7 @@ public class NavigationActivity extends BaseActivity {
             });
         }
 
-        // 作业管理卡片 - 已删除，跳转到空页面
+        // 作业管理卡片
         MaterialCardView cardJobManagement = findViewById(R.id.card_job_management);
         if (cardJobManagement != null) {
             cardJobManagement.setOnClickListener(v -> {
@@ -55,7 +55,7 @@ public class NavigationActivity extends BaseActivity {
         MaterialCardView cardGuide = findViewById(R.id.card_guide);
         if (cardGuide != null) {
             cardGuide.setOnClickListener(v -> {
-                Intent intent = new Intent(NavigationActivity.this, StartGuideActivity.class);
+                Intent intent = new Intent(NavigationActivity.this, StartbootingActivity.class);
                 startActivity(intent);
             });
         }
