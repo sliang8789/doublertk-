@@ -3,6 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_marginStart="12dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginEnd="12dp"
     android:layout_marginBottom="8dp"
     app:cardCornerRadius="8dp"
     app:cardElevation="2dp"
@@ -13,8 +16,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="16dp"
-        android:gravity="center_vertical"
-        android:background="?android:attr/selectableItemBackground">
+        android:gravity="center_vertical">
 
         <!-- 作业信息 -->
         <LinearLayout
@@ -28,71 +30,39 @@
                 android:id="@+id/tv_job_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Unnamed Job"
+                android:text="作业名称"
                 android:textColor="@android:color/black"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
-            <!-- 创建时间 -->
+            <!-- 作业时间 -->
             <TextView
-                android:id="@+id/tv_create_time"
+                android:id="@+id/tv_job_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="2025-08-03 19:08:53"
-                android:textColor="#666666"
+                android:text="2025-01-01 12:00:00"
+                android:textColor="@color/text_gray_dark"
                 android:textSize="14sp" />
 
-            <!-- 描述 -->
-            <TextView
-                android:id="@+id/tv_description"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text=""
-                android:textColor="#999999"
-                android:textSize="12sp"
-                android:visibility="gone" />
-
         </LinearLayout>
 
-        <!-- 操作按钮 -->
-        <LinearLayout
+        <!-- 管理按钮 -->
+        <Button
+            android:id="@+id/btn_manage"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
-            android:orientation="horizontal">
-
-            <!-- 编辑按钮 -->
-            <Button
-                android:id="@+id/btn_edit"
-                android:layout_width="wrap_content"
-                android:layout_height="45dp"
-                android:layout_marginRight="4dp"
-                android:minWidth="60dp"
-                android:text="@string/job_card_edit_label"
-                android:textColor="@android:color/white"
-                android:textSize="12sp"
-                android:backgroundTint="@color/black"
-                android:paddingLeft="12dp"
-                android:paddingRight="12dp" />
-
-            <!-- 删除按钮 -->
-            <Button
-                android:id="@+id/btn_delete"
-                android:layout_width="wrap_content"
-                android:layout_height="45dp"
-                android:minWidth="60dp"
-                android:text="@string/job_action_delete"
-                android:textColor="@android:color/white"
-                android:textSize="12sp"
-                android:backgroundTint="#FF5722"
-                android:paddingLeft="12dp"
-                android:paddingRight="12dp" />
-
-        </LinearLayout>
+            android:layout_height="45dp"
+            android:layout_marginStart="8dp"
+            android:minWidth="60dp"
+            android:text="@string/job_card_edit_label"
+            android:textColor="@android:color/white"
+            android:textSize="12sp"
+            android:backgroundTint="@color/black"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp" />
 
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>
+
 

@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/gray_background"
+    tools:context=".view.StartbootingActivity">
+
+    <!-- 引用全局顶部导航栏 -->
+    <include
+        android:id="@+id/app_bar"
+        layout="@layout/layout_top_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 左侧卡片区域 - 30% -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_left"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="6dp"
+        android:layout_marginBottom="12dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="@color/white"
+        app:strokeWidth="0dp"
+        app:layout_constraintTop_toBottomOf="@id/app_bar"
+        app:layout_constraintBottom_toTopOf="@id/bottom_bar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/card_right"
+        app:layout_constraintHorizontal_weight="3">
+
+        <!-- 左侧卡片内容区域，目前为空 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- 预留内容区域 -->
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- 右侧内容区域 - 70% -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_right"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="6dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="12dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="@color/white"
+        app:strokeWidth="0dp"
+        app:layout_constraintTop_toBottomOf="@id/app_bar"
+        app:layout_constraintBottom_toTopOf="@id/bottom_bar"
+        app:layout_constraintStart_toEndOf="@id/card_left"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_weight="7">
+
+        <!-- 使用 FrameLayout 包装船舶视图和按钮 -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <!-- 船舶模型视图 -->
+            <com.example.doublertk.view.ShipView
+                android:id="@+id/ship_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <!-- 左下角控制区：仅船身居中 -->
+            <LinearLayout
+                android:id="@+id/left_control_panel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|start"
+                android:layout_marginStart="16dp"
+                android:layout_marginBottom="16dp"
+                android:orientation="vertical">
+
+                <!-- 船身居中按钮 -->
+                <Button
+                    android:id="@+id/btn_reset_position"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="船身居中"
+                    android:textSize="14sp"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
+                    android:backgroundTint="@color/black"
+                    android:textColor="@color/white" />
+
+            </LinearLayout>
+
+            <!-- 方向控制按钮组 - 右下角 -->
+            <LinearLayout
+                android:id="@+id/control_buttons"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_gravity="bottom|end"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="16dp"
+                android:gravity="center">
+
+                <!-- 上按钮 -->
+
+                <!-- 中间行：左、下、右按钮 -->
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/btn_move_up"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="向上移动"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_arrow_up" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+
+                    <!-- 左按钮 -->
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/btn_move_left"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_arrow_left"
+                        android:contentDescription="向左移动"
+                        android:padding="8dp" />
+
+                    <!-- 下按钮 -->
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/btn_move_down"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_arrow_down"
+                        android:contentDescription="向下移动"
+                        android:padding="8dp" />
+
+                    <!-- 右按钮 -->
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/btn_move_right"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_arrow_right"
+                        android:contentDescription="向右移动"
+                        android:padding="8dp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </FrameLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- 引用全局底部导航栏 -->
+    <include
+        android:id="@+id/bottom_bar"
+        layout="@layout/layout_bottom_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+

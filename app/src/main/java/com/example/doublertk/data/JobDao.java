@@ -28,9 +28,6 @@ public interface JobDao {
     @Query("SELECT * FROM jobs ORDER BY createdAt DESC")
     List<Job> getAll();
 
-    @Query("SELECT COUNT(*) FROM jobs WHERE name = :name")
-    int countByName(String name);
-
     @Query("SELECT * FROM jobs WHERE id = :id LIMIT 1")
     Job getById(long id);
 
