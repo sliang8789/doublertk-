@@ -7,7 +7,7 @@ public class ScaleManager {
 
     private static final float DEFAULT_SCALE = 1f;
     private static final float MIN_SCALE = 0.4f;
-    private static final float MAX_SCALE = 1.8f;
+    private static final float MAX_SCALE = 1.6f;
     private static final float SCALE_STEP = 0.1f;
 
     private float currentScale = DEFAULT_SCALE;

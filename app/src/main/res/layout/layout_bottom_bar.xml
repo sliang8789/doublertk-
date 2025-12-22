@@ -32,7 +32,7 @@
         android:padding="2dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:scaleType="centerInside"
-        android:src="@drawable/ic_settings"
+        android:src="@drawable/ic_home"
         app:tint="@color/white"
         android:contentDescription="设置"
         android:clickable="true"
