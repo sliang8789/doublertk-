@@ -1,0 +1,142 @@
+================================================================================
+DXF文件和坐标文件解析功能 - 代码迁移文件清单
+================================================================================
+
+一、DXF解析相关文件（必需）
+--------------------------------------------------------------------------------
+
+[Java源文件 - 从 app/src/main/java/com/example/solidifyapp/dwg/ 复制]
+
+1. DwgDxfParser.java              (566行, 24.7 KB)  - Kabeja库DXF解析器
+2. SimpleDxfParser.java           (267行, 10.2 KB)  - 简单DXF解析器（无需Kabeja）
+3. ParseResult.java               (52行,  1.1 KB)   - 解析结果数据类
+4. LayerInfo.java                 (56行,  1.2 KB)   - 图层信息数据类
+5. EntityInfo.java                (46行,  1.0 KB)   - 实体信息数据类
+6. DxfOverlayResult.java          (33行,  0.7 KB)   - 覆盖层结果数据类
+
+[JAR库文件 - 从 app/libs/ 复制]
+
+7. kabeja-0.4.jar                 (339 KB)          - 必需：DXF核心解析库
+8. kabeja-svg-0.4.jar             (202 KB)          - 必需：SVG支持
+9. batik-all.jar                  (2.9 MB)          - 必需：图形处理
+10. xml-apis.jar                  (194 KB)          - 必需：XML API
+
+注意：不要复制 miethxml-ui.jar 和 xml-apis-ext.jar（会导致冲突）
+
+[可选文件]
+
+11. DwgParser.java                (20.3 KB)         - DWG文件解析器（如需要）
+
+
+二、坐标文件解析相关代码（建议提取）
+--------------------------------------------------------------------------------
+
+[独立工具类 - 需要创建]
+
+1. CoordinateFileParser.java      - 坐标文件解析工具类
+   位置：创建在你的项目的 utils/ 包下
+   功能：解析txt/csv格式的坐标文件
+   代码：见迁移文档第三部分3.2节
+
+[原始代码参考位置]
+
+2. DataManagementActivity.java    
+   第 821-899 行：handleImportedCoordinates() - 文件解析
+   第 1729-1808 行：addCoordinateFromInput() - 手动输入
+   第 1813-1878 行：handlePointLibraryResult() - 点库导入
+
+
+三、Gradle配置修改
+--------------------------------------------------------------------------------
+
+在目标项目的 app/build.gradle 中添加：
+
+android {
+    packaging {
+        resources {
+            excludes += ["icons/**"]
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'], 
+        exclude: ['miethxml-ui.jar', 'xml-apis-ext.jar'])
+}
+
+
+四、迁移步骤速查
+--------------------------------------------------------------------------------
+
+步骤1：创建目标文件夹
+  你的项目/app/src/main/java/你的包名/dwg/
+  你的项目/app/src/main/java/你的包名/utils/
+  你的项目/app/libs/
+
+步骤2：复制文件
+  ✓ 复制上述 1-6 号Java文件到 dwg/ 文件夹
+  ✓ 复制 7-10 号JAR文件到 libs/ 文件夹
+  ✓ 创建 CoordinateFileParser.java 到 utils/ 文件夹
+
+步骤3：修改包名
+  ✓ 将所有Java文件中的包名改为你的项目包名
+  ✓ 将 import 语句也相应修改
+
+步骤4：配置Gradle
+  ✓ 按照上述配置修改 build.gradle
+  ✓ 同步项目（Sync Project with Gradle Files）
+
+步骤5：测试
+  ✓ 使用迁移文档中的示例代码进行测试
+
+
+五、文件大小统计
+--------------------------------------------------------------------------------
+
+Java源代码：   ~40 KB  (6个文件)
+JAR库文件：    ~3.6 MB (4个文件)
+总计：         ~3.7 MB
+
+
+六、依赖关系图
+--------------------------------------------------------------------------------
+
+DXF解析功能：
+  DwgDxfParser.java
+    ├── 依赖 → kabeja-0.4.jar
+    ├── 依赖 → kabeja-svg-0.4.jar
+    ├── 依赖 → batik-all.jar
+    ├── 依赖 → xml-apis.jar
+    ├── 使用 → ParseResult.java
+    ├── 使用 → LayerInfo.java
+    ├── 使用 → EntityInfo.java
+    └── 使用 → DxfOverlayResult.java
+
+  SimpleDxfParser.java (轻量级，无外部依赖)
+    ├── 使用 → ParseResult.java
+    ├── 使用 → LayerInfo.java
+    └── 使用 → EntityInfo.java
+
+坐标文件解析功能：
+  CoordinateFileParser.java (独立工具类，无外部依赖)
+    └── 只需要 Android SDK 基础库
+
+
+七、兼容性说明
+--------------------------------------------------------------------------------
+
+- Android API Level：30+ (Android 11+)
+- Java版本：Java 11
+- Gradle版本：7.0+
+- AndroidX：需要
+
+
+八、联系信息
+--------------------------------------------------------------------------------
+
+源代码位置：e:\solidify
+详细文档：   代码迁移文档_DXF和坐标解析.md
+创建日期：   2026-01-18
+
+================================================================================
+
