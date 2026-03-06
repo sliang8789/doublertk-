@@ -53,6 +53,9 @@
         <activity
             android:name=".view.JobManagementActivity"
             android:exported="false" />
+        <activity
+            android:name=".view.DxfViewerActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

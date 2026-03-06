@@ -10,10 +10,19 @@ import androidx.room.TypeConverters;
 /**
  * Room 数据库
  * 数据库名称：rtkroom
+ * 版本4：添加DockingLog表
  */
 @Database(
-    entities = {CoordinateSystem.class, KnownPoint.class, Job.class},
-    version = 2,
+    entities = {
+        CoordinateSystem.class,
+        KnownPoint.class,
+        Job.class,
+        ShipInfo.class,
+        PositionHistory.class,
+        Leg.class,
+        DockingLog.class
+    },
+    version = 4,
     exportSchema = false
 )
 @TypeConverters({})
@@ -24,6 +33,10 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract CoordinateSystemDao coordinateSystemDao();
     public abstract KnownPointDao knownPointDao();
     public abstract JobDao jobDao();
+    public abstract ShipInfoDao shipInfoDao();
+    public abstract PositionHistoryDao positionHistoryDao();
+    public abstract LegDao legDao();
+    public abstract DockingLogDao dockingLogDao();
 
     private static volatile AppDatabase INSTANCE;
 
@@ -39,11 +52,19 @@ public abstract class AppDatabase extends RoomDatabase {
                             AppDatabase.class,
                             DATABASE_NAME
                     )
+                    .fallbackToDestructiveMigration()
                     .build();
                 }
             }
         }
         return INSTANCE;
+    }
+
+    /**
+     * 获取数据库实例（兼容旧代码）
+     */
+    public static AppDatabase getInstance(Context context) {
+        return getDatabase(context);
     }
 
     /**
