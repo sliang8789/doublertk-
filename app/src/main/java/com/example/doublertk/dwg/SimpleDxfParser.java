@@ -164,7 +164,8 @@ public class SimpleDxfParser {
             String[] entityTypes = {"LINE", "CIRCLE", "ARC", "POLYLINE", "LWPOLYLINE", "TEXT", "MTEXT", "INSERT", "POINT"};
             
             for (String entityType : entityTypes) {
-                Pattern entityPattern = Pattern.compile("\\s*0\\s*\\r?\\n\\s*" + entityType + "\\s*\\r?\\n(.*?)(?=\\s*0\\s*\\r?\\n|$)", Pattern.DOTALL);
+                // 修改正则：匹配从实体类型开始到下一个"0\n实体类型"或ENDSEC
+                Pattern entityPattern = Pattern.compile("0\\s*\\r?\\n\\s*" + entityType + "\\s*\\r?\\n(.*?)(?=\\r?\\n\\s*0\\s*\\r?\\n\\s*(?:LINE|CIRCLE|ARC|POLYLINE|LWPOLYLINE|TEXT|MTEXT|INSERT|POINT|ENDSEC)|$)", Pattern.DOTALL);
                 Matcher entityMatcher = entityPattern.matcher(entitiesSection);
                 
                 while (entityMatcher.find()) {
@@ -245,12 +246,95 @@ public class SimpleDxfParser {
                 }
                 break;
                 
+            case "LWPOLYLINE":
+            case "POLYLINE":
+                // 提取多段线的所有顶点
+                Log.d("SimpleDxfParser", "LWPOLYLINE entityData (first 500 chars): " + 
+                    entityData.substring(0, Math.min(500, entityData.length())));
+                
+                // 检查是否闭合（组码70，bit 0表示闭合）
+                String flag70 = extractGroupCode(entityData, "70");
+                boolean isClosed = false;
+                if (flag70 != null) {
+                    try {
+                        int flags = Integer.parseInt(flag70.trim());
+                        isClosed = (flags & 1) == 1; // bit 0表示闭合
+                    } catch (Exception e) {
+                        // 忽略
+                    }
+                }
+                
+                bounds.append(extractPolylineVertices(entityData, isClosed));
+                break;
+                
+            case "TEXT":
+            case "MTEXT":
+                // 提取文本插入点
+                Log.d("SimpleDxfParser", "TEXT entityData: " + entityData);
+                String textX = extractGroupCode(entityData, "10");
+                String textY = extractGroupCode(entityData, "20");
+                String textContent = extractGroupCode(entityData, "1");
+                Log.d("SimpleDxfParser", "TEXT coords: x=" + textX + ", y=" + textY + ", content=" + textContent);
+                if (textX != null && textY != null) {
+                    bounds.append(String.format("文本:(%.2f,%.2f)", 
+                        Double.parseDouble(textX), Double.parseDouble(textY)));
+                    if (textContent != null && !textContent.isEmpty()) {
+                        bounds.append(" \"").append(textContent).append("\"");
+                    }
+                } else {
+                    bounds.append("复杂几何体");
+                }
+                break;
+                
             default:
                 bounds.append("复杂几何体");
                 break;
         }
         
         return bounds.toString();
+    }
+    
+    /**
+     * 提取多段线的顶点
+     */
+    private static String extractPolylineVertices(String entityData, boolean isClosed) {
+        StringBuilder vertices = new StringBuilder("顶点:");
+        
+        // 使用正则表达式匹配连续的10-20配对（X-Y坐标对）
+        // 匹配模式：10\n值\n20\n值
+        Pattern vertexPattern = Pattern.compile(
+            "\\s*10\\s*\\r?\\n\\s*([^\\r\\n]+)\\s*\\r?\\n\\s*20\\s*\\r?\\n\\s*([^\\r\\n]+)",
+            Pattern.MULTILINE
+        );
+        
+        Matcher matcher = vertexPattern.matcher(entityData);
+        int count = 0;
+        
+        while (matcher.find()) {
+            try {
+                double x = Double.parseDouble(matcher.group(1).trim());
+                double y = Double.parseDouble(matcher.group(2).trim());
+                
+                if (count > 0) vertices.append(";");
+                vertices.append(String.format("(%.2f,%.2f)", x, y));
+                count++;
+            } catch (Exception e) {
+                // 跳过解析失败的顶点
+                Log.w("SimpleDxfParser", "Failed to parse vertex: " + matcher.group(0));
+            }
+        }
+        
+        if (count == 0) {
+            return "复杂几何体";
+        }
+        
+        // 如果是闭合多段线，添加标记
+        if (isClosed) {
+            vertices.append("|CLOSED");
+        }
+        
+        Log.d("SimpleDxfParser", "Extracted " + count + " vertices from LWPOLYLINE (closed=" + isClosed + ")");
+        return vertices.toString();
     }
     
     /**
@@ -265,4 +349,11 @@ public class SimpleDxfParser {
         return null;
     }
 }
+
+
+
+
+
+
+
 

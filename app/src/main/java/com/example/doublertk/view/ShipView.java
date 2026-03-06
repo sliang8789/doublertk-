@@ -3,8 +3,10 @@ package com.example.doublertk.view;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PointF;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -23,15 +25,32 @@ public class ShipView extends View {
     private Paint outlinePaint;
     private Paint rtkPaint;  // RTK点画笔
     private Paint stakePaint;  // 桩子画笔
+
+    private Paint trackPaint;
+    private Paint targetPaint;
+    private Paint headingPaint;
+    private Paint compassPaint;
+
+    private Paint selectedStakePaint;
+    private Paint guidancePaint;
+
+    private Paint reefPaint;
+    private Paint reefBorderPaint;
+    private Paint boundaryWarnPaint;
     
     // 船舶位置偏移量（相对于中心）
     private float offsetX = 0f;
     private float offsetY = 0f;
+
+    private float headingDeg = 0f;
+
+    private PointF targetPoint;
+    private final List<PointF> trackPoints = new ArrayList<>();
+    private int maxTrackPoints = 300;
     
-    // 整体画布偏移量（用于边界调整，确保船舶在可见区域内）
-    private float canvasOffsetX = 0f;
-    private float canvasOffsetY = 0f;
-    private boolean manualCenterLocked = false;
+    // 缓存的船舶尺寸（用于边界检测）
+    private float cachedShipWidth = 0f;
+    private float cachedShipHeight = 0f;
     
     // 移动步长
     private static final float MOVE_STEP = 10f;
@@ -39,6 +58,15 @@ public class ShipView extends View {
     // 边界安全边距（船舶距离边界的最小距离）
     private static final float BOUNDARY_MARGIN = 10f;  // 上下边界安全距离
     private static final float BOUNDARY_MARGIN_HORIZONTAL = 5f;  // 左右边界安全距离（更小）
+
+    private static final float WORLD_UNITS_PER_METER = 10f;
+    private static final float REEF_BAND_M = 6f;
+    private static final float POOL_EXTEND_M = 25f;
+    private static final float BOUNDARY_WARN_M = 8f;
+    private static final float BOUNDARY_CLEAR_M = 10f;
+
+    private boolean boundaryAlarmActive = false;
+    private float lastMinDistToBoundaryM = Float.POSITIVE_INFINITY;
     
     // RTK和桩子大小
     private static final float RTK_RADIUS = 6f;  // RTK点半径
@@ -48,13 +76,17 @@ public class ShipView extends View {
     private static final float RTK_OFFSET_RATIO = 0.08f;  // 距离端点8%的船长
     
     // 桩子对数量
-    private static final int STAKE_PAIR_COUNT = 25;  // 随机生成25对桩点
+    private static final int STAKE_PAIR_COUNT = 90;  // 随机生成25对桩点
     
     // 桩子位置（在空白区域，左上角和右上角附近）- 保留原有的一对
     private float stake1X = 0f;
     private float stake1Y = 0f;
     private float stake2X = 0f;
     private float stake2Y = 0f;
+
+    private static final int SELECTED_NONE = -2;
+    private static final int SELECTED_FIXED_PAIR = -1;
+    private int selectedStakePairIndex = SELECTED_NONE;
     
     // 随机桩点对列表（每个对包含两个点：[北侧X, 北侧Y, 南侧X, 南侧Y]）
     private List<float[]> stakePairs = new ArrayList<>();
@@ -65,9 +97,15 @@ public class ShipView extends View {
 
     // 双指缩放手势检测器
     private ScaleGestureDetector scaleGestureDetector;
+
+    private boolean isScaling = false;
     
     // 标记桩点是否已生成（确保只生成一次）
     private boolean stakesGenerated = false;
+
+    // 画布平移（相机），用于在船舶触边时保持船舶一直在可视区域内
+    private float canvasOffsetX = 0f;
+    private float canvasOffsetY = 0f;
 
     public ShipView(Context context) {
         super(context);
@@ -115,8 +153,60 @@ public class ShipView extends View {
         stakePaint.setStyle(Paint.Style.STROKE);
         stakePaint.setStrokeWidth(3f);
 
+        trackPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        trackPaint.setColor(0xFF4A90E2);
+        trackPaint.setStyle(Paint.Style.STROKE);
+        trackPaint.setStrokeWidth(4f);
+
+        targetPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        targetPaint.setColor(0xFFFF8C00);
+        targetPaint.setStyle(Paint.Style.STROKE);
+        targetPaint.setStrokeWidth(4f);
+
+        headingPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        headingPaint.setColor(0xFF2C5F8D);
+        headingPaint.setStyle(Paint.Style.STROKE);
+        headingPaint.setStrokeWidth(5f);
+
+        compassPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        compassPaint.setColor(0xCC000000);
+        compassPaint.setStyle(Paint.Style.STROKE);
+        compassPaint.setStrokeWidth(3f);
+
+        selectedStakePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        selectedStakePaint.setColor(0xFFFFC107);
+        selectedStakePaint.setStyle(Paint.Style.STROKE);
+        selectedStakePaint.setStrokeWidth(6f);
+
+        guidancePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        guidancePaint.setColor(0xFFFF8C00);
+        guidancePaint.setStyle(Paint.Style.STROKE);
+        guidancePaint.setStrokeWidth(4f);
+        guidancePaint.setPathEffect(new DashPathEffect(new float[]{16f, 10f}, 0f));
+
+        reefPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        reefPaint.setColor(0x33D32F2F);
+        reefPaint.setStyle(Paint.Style.FILL);
+
+        reefBorderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        reefBorderPaint.setColor(0xFFD32F2F);
+        reefBorderPaint.setStyle(Paint.Style.STROKE);
+        reefBorderPaint.setStrokeWidth(4f);
+
+        boundaryWarnPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        boundaryWarnPaint.setColor(0xFFFFA000);
+        boundaryWarnPaint.setStyle(Paint.Style.STROKE);
+        boundaryWarnPaint.setStrokeWidth(3f);
+        boundaryWarnPaint.setPathEffect(new DashPathEffect(new float[]{10f, 10f}, 0f));
+
         // 初始化双指缩放手势检测器
         scaleGestureDetector = new ScaleGestureDetector(context, new ScaleGestureDetector.SimpleOnScaleGestureListener() {
+            @Override
+            public boolean onScaleBegin(ScaleGestureDetector detector) {
+                isScaling = true;
+                return true;
+            }
+
             @Override
             public boolean onScale(ScaleGestureDetector detector) {
                 float factor = detector.getScaleFactor();
@@ -124,10 +214,13 @@ public class ShipView extends View {
                     return false;
                 }
                 scaleManager.applyScaleFactor(factor);
-                // 手动缩放后，允许边界逻辑重新工作
-                manualCenterLocked = false;
                 invalidate();
                 return true;
+            }
+
+            @Override
+            public void onScaleEnd(ScaleGestureDetector detector) {
+                isScaling = false;
             }
         });
     }
@@ -137,8 +230,66 @@ public class ShipView extends View {
         if (scaleGestureDetector != null) {
             scaleGestureDetector.onTouchEvent(event);
         }
-        // 仅处理缩放手势，不拦截其它事件
+
+        if (event.getAction() == MotionEvent.ACTION_UP) {
+            if (!isScaling) {
+                handleTapSelectStakePair(event.getX(), event.getY());
+            }
+        }
+
         return true;
+    }
+
+    private void handleTapSelectStakePair(float screenX, float screenY) {
+        int width = getWidth();
+        int height = getHeight();
+        if (width <= 0 || height <= 0) return;
+
+        // 将屏幕坐标转换为世界坐标（考虑画布平移 + 缩放）
+        float scaleFactor = scaleManager.getCurrentScale();
+        float halfW = width * 0.5f;
+        float halfH = height * 0.5f;
+
+        // Stakes are drawn after translate(canvasOffset) and scale(scaleFactor) about center.
+        float worldX = (screenX - canvasOffsetX - halfW) / scaleFactor + halfW;
+        float worldY = (screenY - canvasOffsetY - halfH) / scaleFactor + halfH;
+
+        float thresholdWorld = 28f / scaleFactor;
+        float bestDist = Float.MAX_VALUE;
+        int bestIndex = SELECTED_NONE;
+
+        // Fixed pair
+        float d1 = distance(worldX, worldY, stake1X, stake1Y);
+        float d2 = distance(worldX, worldY, stake2X, stake2Y);
+        float bestFixed = Math.min(d1, d2);
+        if (bestFixed < bestDist) {
+            bestDist = bestFixed;
+            bestIndex = SELECTED_FIXED_PAIR;
+        }
+
+        // Random pairs
+        for (int i = 0; i < stakePairs.size(); i++) {
+            float[] pair = stakePairs.get(i);
+            if (pair == null || pair.length < 4) continue;
+            float dn = distance(worldX, worldY, pair[0], pair[1]);
+            float ds = distance(worldX, worldY, pair[2], pair[3]);
+            float d = Math.min(dn, ds);
+            if (d < bestDist) {
+                bestDist = d;
+                bestIndex = i;
+            }
+        }
+
+        if (bestDist <= thresholdWorld) {
+            selectedStakePairIndex = bestIndex;
+            invalidate();
+        }
+    }
+
+    private float distance(float x1, float y1, float x2, float y2) {
+        float dx = x2 - x1;
+        float dy = y2 - y1;
+        return (float) Math.sqrt(dx * dx + dy * dy);
     }
 
     @Override
@@ -206,6 +357,50 @@ public class ShipView extends View {
         canvas.translate(canvasOffsetX, canvasOffsetY);
         canvas.scale(scaleFactor, scaleFactor, width * 0.5f, height * 0.5f);
 
+        float halfWWorld = width * 0.5f;
+        float halfHWorld = height * 0.5f;
+
+        float visibleLeftWorld = halfWWorld + (0f - canvasOffsetX - halfWWorld) / scaleFactor;
+        float visibleRightWorld = halfWWorld + (width - canvasOffsetX - halfWWorld) / scaleFactor;
+        float visibleTopWorld = halfHWorld + (0f - canvasOffsetY - halfHWorld) / scaleFactor;
+        float visibleBottomWorld = halfHWorld + (height - canvasOffsetY - halfHWorld) / scaleFactor;
+
+        float extendWorld = POOL_EXTEND_M * WORLD_UNITS_PER_METER;
+        float boundaryLeft = -extendWorld;
+        float boundaryTop = -extendWorld;
+        float boundaryRight = width + extendWorld;
+        float boundaryBottom = height + extendWorld;
+
+        drawReefAndBoundary(canvas,
+                visibleLeftWorld, visibleTopWorld, visibleRightWorld, visibleBottomWorld,
+                boundaryLeft, boundaryTop, boundaryRight, boundaryBottom);
+        updateBoundaryAlarm(true, centerX, centerY, shipWidth, shipHeight, boundaryLeft, boundaryTop, boundaryRight, boundaryBottom);
+
+        if (!trackPoints.isEmpty()) {
+            Path p = new Path();
+            for (int i = 0; i < trackPoints.size(); i++) {
+                PointF pt = trackPoints.get(i);
+                if (pt == null) continue;
+                float x = width * 0.5f + pt.x;
+                float y = height * 0.5f + pt.y;
+                if (i == 0) {
+                    p.moveTo(x, y);
+                } else {
+                    p.lineTo(x, y);
+                }
+            }
+            canvas.drawPath(p, trackPaint);
+        }
+
+        if (targetPoint != null) {
+            float tx = width * 0.5f + targetPoint.x;
+            float ty = height * 0.5f + targetPoint.y;
+            float r = 18f;
+            canvas.drawCircle(tx, ty, r, targetPaint);
+            canvas.drawLine(tx - r, ty, tx + r, ty, targetPaint);
+            canvas.drawLine(tx, ty - r, tx, ty + r, targetPaint);
+        }
+
         // 计算RTK位置（船头和船尾，距离端点一小段距离）
         float bowTopY = centerY - shipHeight * 0.5f;
         float sternBottomY = centerY + shipHeight * 0.5f;
@@ -242,24 +437,318 @@ public class ShipView extends View {
         // 绘制原有的一对桩子（南北方向排列，距离与RTK距离相等）
         canvas.drawCircle(stake1X, stake1Y, STAKE_RADIUS, stakePaint);
         canvas.drawCircle(stake2X, stake2Y, STAKE_RADIUS, stakePaint);
+
+        // 高亮选中的桩点对
+        float[] selected = getSelectedStakePairWorldInternal();
+        if (selected != null) {
+            canvas.drawLine(selected[0], selected[1], selected[2], selected[3], selectedStakePaint);
+            canvas.drawCircle(selected[0], selected[1], STAKE_RADIUS + 6f, selectedStakePaint);
+            canvas.drawCircle(selected[2], selected[3], STAKE_RADIUS + 6f, selectedStakePaint);
+        }
+
+        if (selected != null) {
+            PointF[] path = computeGuidancePathWorld(centerX, centerY, shipHeight, selected);
+            if (path != null && path.length >= 3) {
+                float distToP1 = distance(path[0].x, path[0].y, path[1].x, path[1].y);
+                float distToP2 = distance(path[0].x, path[0].y, path[2].x, path[2].y);
+                float toTargetTh = 120f;
+                boolean goDirectTarget = distToP2 <= toTargetTh || distToP2 <= distToP1;
+
+                Path p = new Path();
+                p.moveTo(path[0].x, path[0].y);
+                if (goDirectTarget) {
+                    p.lineTo(path[2].x, path[2].y);
+                    canvas.drawPath(p, guidancePaint);
+                    drawArrowHead(canvas, path[0], path[2], guidancePaint);
+                } else {
+                    p.lineTo(path[1].x, path[1].y);
+                    p.lineTo(path[2].x, path[2].y);
+                    canvas.drawPath(p, guidancePaint);
+                    drawArrowHead(canvas, path[1], path[2], guidancePaint);
+                }
+            }
+        }
         
         // ========== 绘制船舶（前景层） ==========
-        
+
+        canvas.save();
+        canvas.rotate(headingDeg, centerX, centerY);
+
         // 绘制船舶路径
         Path shipPath = createShipPath(centerX, centerY, shipWidth, shipHeight);
-        
+
         // 先绘制填充
         canvas.drawPath(shipPath, shipPaint);
-        
+
         // 再绘制轮廓
         canvas.drawPath(shipPath, outlinePaint);
-        
+
         // 绘制RTK点（船头和船尾）
         canvas.drawCircle(rtkBowX, rtkBowY, RTK_RADIUS, rtkPaint);
         canvas.drawCircle(rtkSternX, rtkSternY, RTK_RADIUS, rtkPaint);
 
+        float arrowLen = shipHeight * 0.22f;
+        float arrowHalf = shipWidth * 0.10f;
+        float ax0 = centerX;
+        float ay0 = centerY - shipHeight * 0.15f;
+        float ax1 = centerX;
+        float ay1 = ay0 - arrowLen;
+        canvas.drawLine(ax0, ay0, ax1, ay1, headingPaint);
+        canvas.drawLine(ax1, ay1, ax1 - arrowHalf, ay1 + arrowHalf, headingPaint);
+        canvas.drawLine(ax1, ay1, ax1 + arrowHalf, ay1 + arrowHalf, headingPaint);
+
+        canvas.restore();
+
         // 恢复画布状态
         canvas.restore();
+
+        drawCompass(canvas, width, height);
+    }
+
+    private void drawReefAndBoundary(Canvas canvas,
+                                     float visibleLeft, float visibleTop, float visibleRight, float visibleBottom,
+                                     float boundaryLeft, float boundaryTop, float boundaryRight, float boundaryBottom) {
+        float reefBandWorld = REEF_BAND_M * WORLD_UNITS_PER_METER;
+        float warnWorld = BOUNDARY_WARN_M * WORLD_UNITS_PER_METER;
+
+        float waveAmp = 8f;
+        float waveStep = 48f;
+        int waveCountH = Math.max(1, (int) ((boundaryRight - boundaryLeft) / waveStep));
+        int waveCountV = Math.max(1, (int) ((boundaryBottom - boundaryTop) / waveStep));
+
+        boolean hasTop = visibleTop < boundaryTop;
+        boolean hasLeft = visibleLeft < boundaryLeft;
+        boolean hasRight = visibleRight > boundaryRight;
+
+        float topBand = Math.min(reefBandWorld, Math.max(0f, boundaryTop - visibleTop));
+        float leftBand = Math.min(reefBandWorld, Math.max(0f, boundaryLeft - visibleLeft));
+        float rightBand = Math.min(reefBandWorld, Math.max(0f, visibleRight - boundaryRight));
+
+        float waveOutBias = waveAmp * 1.8f;
+        float topWaveBase = boundaryTop - waveOutBias;
+        float leftWaveBase = boundaryLeft - waveOutBias;
+        float rightWaveBase = boundaryRight + waveOutBias;
+
+        if (hasTop && topBand > 0f) {
+            Path topFill = new Path();
+            topFill.moveTo(visibleLeft, visibleTop);
+            topFill.lineTo(visibleRight, visibleTop);
+            topFill.lineTo(visibleRight, boundaryTop);
+            for (int i = waveCountH; i >= 0; i--) {
+                float x = boundaryLeft + i * ((boundaryRight - boundaryLeft) / waveCountH);
+                float y = topWaveBase + (float) Math.sin(i * 0.7f) * waveAmp;
+                topFill.lineTo(x, y);
+            }
+            topFill.lineTo(visibleLeft, boundaryTop);
+            topFill.close();
+            canvas.drawPath(topFill, reefPaint);
+        }
+
+        Path topBorder = new Path();
+        topBorder.moveTo(boundaryLeft, topWaveBase + (float) Math.sin(0f) * waveAmp);
+        for (int i = 1; i <= waveCountH; i++) {
+            float x = boundaryLeft + i * ((boundaryRight - boundaryLeft) / waveCountH);
+            float y = topWaveBase + (float) Math.sin(i * 0.7f) * waveAmp;
+            topBorder.lineTo(x, y);
+        }
+        canvas.drawPath(topBorder, reefBorderPaint);
+
+        if (hasLeft && leftBand > 0f) {
+            Path leftFill = new Path();
+            leftFill.moveTo(visibleLeft, visibleTop);
+            leftFill.lineTo(boundaryLeft, visibleTop);
+            for (int i = 0; i <= waveCountV; i++) {
+                float y = boundaryTop + i * ((boundaryBottom - boundaryTop) / waveCountV);
+                float x = leftWaveBase + (float) Math.sin(i * 0.7f + 1.3f) * waveAmp;
+                leftFill.lineTo(x, y);
+            }
+            leftFill.lineTo(boundaryLeft, visibleBottom);
+            leftFill.lineTo(visibleLeft, visibleBottom);
+            leftFill.close();
+            canvas.drawPath(leftFill, reefPaint);
+        }
+
+        Path leftBorder = new Path();
+        leftBorder.moveTo(leftWaveBase + (float) Math.sin(0f + 1.3f) * waveAmp, boundaryTop);
+        for (int i = 1; i <= waveCountV; i++) {
+            float y = boundaryTop + i * ((boundaryBottom - boundaryTop) / waveCountV);
+            float x = leftWaveBase + (float) Math.sin(i * 0.7f + 1.3f) * waveAmp;
+            leftBorder.lineTo(x, y);
+        }
+        canvas.drawPath(leftBorder, reefBorderPaint);
+
+        if (hasRight && rightBand > 0f) {
+            Path rightFill = new Path();
+            rightFill.moveTo(boundaryRight, visibleTop);
+            rightFill.lineTo(visibleRight, visibleTop);
+            rightFill.lineTo(visibleRight, visibleBottom);
+            rightFill.lineTo(boundaryRight, visibleBottom);
+            for (int i = waveCountV; i >= 0; i--) {
+                float y = boundaryTop + i * ((boundaryBottom - boundaryTop) / waveCountV);
+                float x = rightWaveBase + (float) Math.sin(i * 0.7f + 2.1f) * waveAmp;
+                rightFill.lineTo(x, y);
+            }
+            rightFill.close();
+            canvas.drawPath(rightFill, reefPaint);
+        }
+
+        Path rightBorder = new Path();
+        rightBorder.moveTo(rightWaveBase + (float) Math.sin(0f + 2.1f) * waveAmp, boundaryTop);
+        for (int i = 1; i <= waveCountV; i++) {
+            float y = boundaryTop + i * ((boundaryBottom - boundaryTop) / waveCountV);
+            float x = rightWaveBase + (float) Math.sin(i * 0.7f + 2.1f) * waveAmp;
+            rightBorder.lineTo(x, y);
+        }
+        canvas.drawPath(rightBorder, reefBorderPaint);
+
+        float warnAmp = 6f;
+        float warnOutBias = warnAmp * 1.6f;
+        float topWarnBase = boundaryTop + warnWorld - warnOutBias;
+        float leftWarnBase = boundaryLeft + warnWorld - warnOutBias;
+        float rightWarnBase = boundaryRight - warnWorld + warnOutBias;
+        Path topWarn = new Path();
+        topWarn.moveTo(boundaryLeft, topWarnBase + (float) Math.sin(0f + 0.4f) * warnAmp);
+        for (int i = 1; i <= waveCountH; i++) {
+            float x = boundaryLeft + i * ((boundaryRight - boundaryLeft) / waveCountH);
+            float y = topWarnBase + (float) Math.sin(i * 0.7f + 0.4f) * warnAmp;
+            topWarn.lineTo(x, y);
+        }
+        canvas.drawPath(topWarn, boundaryWarnPaint);
+
+        Path leftWarn = new Path();
+        leftWarn.moveTo(leftWarnBase + (float) Math.sin(0f + 1.7f) * warnAmp, boundaryTop);
+        for (int i = 1; i <= waveCountV; i++) {
+            float y = boundaryTop + i * ((boundaryBottom - boundaryTop) / waveCountV);
+            float x = leftWarnBase + (float) Math.sin(i * 0.7f + 1.7f) * warnAmp;
+            leftWarn.lineTo(x, y);
+        }
+        canvas.drawPath(leftWarn, boundaryWarnPaint);
+
+        Path rightWarn = new Path();
+        rightWarn.moveTo(rightWarnBase + (float) Math.sin(0f + 2.5f) * warnAmp, boundaryTop);
+        for (int i = 1; i <= waveCountV; i++) {
+            float y = boundaryTop + i * ((boundaryBottom - boundaryTop) / waveCountV);
+            float x = rightWarnBase + (float) Math.sin(i * 0.7f + 2.5f) * warnAmp;
+            rightWarn.lineTo(x, y);
+        }
+        canvas.drawPath(rightWarn, boundaryWarnPaint);
+    }
+
+    private void updateBoundaryAlarm(boolean enabled, float shipCenterX, float shipCenterY, float shipWidth, float shipHeight,
+                                     float left, float top, float right, float bottom) {
+        if (!enabled) {
+            boundaryAlarmActive = false;
+            lastMinDistToBoundaryM = Float.POSITIVE_INFINITY;
+            return;
+        }
+
+        float shipRadius = 0.5f * Math.max(shipWidth, shipHeight);
+
+        float dLeft = (shipCenterX - shipRadius) - left;
+        float dRight = right - (shipCenterX + shipRadius);
+        float dTop = (shipCenterY - shipRadius) - top;
+
+        float minWorld = Math.min(Math.min(dLeft, dRight), dTop);
+        lastMinDistToBoundaryM = minWorld / WORLD_UNITS_PER_METER;
+
+        if (!boundaryAlarmActive) {
+            boundaryAlarmActive = lastMinDistToBoundaryM <= BOUNDARY_WARN_M;
+        } else {
+            boundaryAlarmActive = lastMinDistToBoundaryM <= BOUNDARY_CLEAR_M;
+        }
+    }
+
+    public boolean isBoundaryAlarmActive() {
+        return boundaryAlarmActive;
+    }
+
+    public float getMinDistanceToBoundaryMeters() {
+        return lastMinDistToBoundaryM;
+    }
+
+    public PointF[] getGuidancePathWorld() {
+        int width = getWidth();
+        int height = getHeight();
+        if (width <= 0 || height <= 0) return null;
+        float[] selected = getSelectedStakePairWorldInternal();
+        if (selected == null) return null;
+        float shipHeight = height * 0.28f;
+        float centerX = width * 0.5f + offsetX;
+        float centerY = height * 0.5f + offsetY;
+        return computeGuidancePathWorld(centerX, centerY, shipHeight, selected);
+    }
+
+    private PointF[] computeGuidancePathWorld(float shipCenterX, float shipCenterY, float shipHeight, float[] stakePair) {
+        if (stakePair == null || stakePair.length < 4) return null;
+
+        float northX = stakePair[0];
+        float northY = stakePair[1];
+        float southX = stakePair[2];
+        float southY = stakePair[3];
+
+        float targetCx = (northX + southX) * 0.5f;
+        float targetCy = (northY + southY) * 0.5f;
+
+        float vx = northX - southX;
+        float vy = northY - southY;
+        float len = (float) Math.sqrt(vx * vx + vy * vy);
+        if (len < 1e-3f) return null;
+        float ux = vx / len;
+        float uy = vy / len;
+
+        float approachDist = Math.max(120f, shipHeight * 1.1f);
+        float preX = targetCx - ux * approachDist;
+        float preY = targetCy - uy * approachDist;
+
+        return new PointF[]{
+                new PointF(shipCenterX, shipCenterY),
+                new PointF(preX, preY),
+                new PointF(targetCx, targetCy)
+        };
+    }
+
+    private void drawArrowHead(Canvas canvas, PointF from, PointF to, Paint paint) {
+        float dx = to.x - from.x;
+        float dy = to.y - from.y;
+        float len = (float) Math.sqrt(dx * dx + dy * dy);
+        if (len < 1e-3f) return;
+        float ux = dx / len;
+        float uy = dy / len;
+
+        float arrowLen = 26f;
+        float arrowHalf = 12f;
+
+        float tipX = to.x;
+        float tipY = to.y;
+        float baseX = tipX - ux * arrowLen;
+        float baseY = tipY - uy * arrowLen;
+
+        float px = -uy;
+        float py = ux;
+
+        float leftX = baseX + px * arrowHalf;
+        float leftY = baseY + py * arrowHalf;
+        float rightX = baseX - px * arrowHalf;
+        float rightY = baseY - py * arrowHalf;
+
+        canvas.drawLine(tipX, tipY, leftX, leftY, paint);
+        canvas.drawLine(tipX, tipY, rightX, rightY, paint);
+    }
+
+    private void drawCompass(Canvas canvas, int width, int height) {
+        float cx = width - 70f;
+        float cy = 70f;
+        float r = 44f;
+        canvas.drawCircle(cx, cy, r, compassPaint);
+
+        float a = (float) Math.toRadians(headingDeg);
+        float dx = (float) Math.sin(a);
+        float dy = (float) -Math.cos(a);
+        float x1 = cx + dx * (r - 6f);
+        float y1 = cy + dy * (r - 6f);
+        canvas.drawLine(cx, cy, x1, y1, compassPaint);
+        canvas.drawLine(x1, y1, x1 - dy * 10f - dx * 6f, y1 + dx * 10f - dy * 6f, compassPaint);
+        canvas.drawLine(x1, y1, x1 + dy * 10f - dx * 6f, y1 - dx * 10f - dy * 6f, compassPaint);
     }
     
     /**
@@ -367,7 +856,6 @@ public class ShipView extends View {
      */
     public void moveUp() {
         offsetY -= MOVE_STEP;
-        manualCenterLocked = false;
         invalidate();
     }
     
@@ -376,7 +864,6 @@ public class ShipView extends View {
      */
     public void moveDown() {
         offsetY += MOVE_STEP;
-        manualCenterLocked = false;
         invalidate();
     }
     
@@ -385,7 +872,6 @@ public class ShipView extends View {
      */
     public void moveLeft() {
         offsetX -= MOVE_STEP;
-        manualCenterLocked = false;
         invalidate();
     }
     
@@ -394,74 +880,132 @@ public class ShipView extends View {
      */
     public void moveRight() {
         offsetX += MOVE_STEP;
-        manualCenterLocked = false;
+        invalidate();
+    }
+
+    /**
+     * 按偏移量移动船舶（用于摇杆控制）
+     * @param dx X方向偏移量
+     * @param dy Y方向偏移量
+     */
+    public void moveByOffset(float dx, float dy) {
+        offsetX += dx;
+        offsetY += dy;
         invalidate();
     }
     
-    /**
-     * 调整画布偏移量，确保船舶在可见区域内
-     * @param width View宽度
-     * @param height View高度
-     * @param scaleFactor 当前缩放因子
-     */
-    private void adjustCanvasOffsetForBoundaries(float width, float height, float scaleFactor) {
-        // 计算船舶的实际尺寸（考虑缩放）
-        float shipWidth = width * 0.28f * scaleFactor;
-        float shipHeight = height * 0.28f * scaleFactor;
-        
-        // 计算船舶在当前偏移量下的中心位置
-        float shipCenterX = width * 0.5f + offsetX;
-        float shipCenterY = height * 0.5f + offsetY;
-        
-        // 计算船舶边界（考虑缩放后的实际尺寸）
-        float shipLeft = shipCenterX - shipWidth * 0.5f;
-        float shipRight = shipCenterX + shipWidth * 0.5f;
-        float shipTop = shipCenterY - shipHeight * 0.5f;
-        float shipBottom = shipCenterY + shipHeight * 0.5f;
-        
-        // 计算View的可见区域边界（考虑缩放）
-        float viewLeft = 0f;
-        float viewRight = width;
-        float viewTop = 0f;
-        float viewBottom = height;
-        
-        // 计算需要的偏移量调整
-        float deltaX = 0f;
-        float deltaY = 0f;
-        
-        // 检查左边界（使用更小的水平边界安全距离）
-        if (shipLeft < viewLeft + BOUNDARY_MARGIN_HORIZONTAL) {
-            deltaX = (viewLeft + BOUNDARY_MARGIN_HORIZONTAL) - shipLeft;
-        }
-        // 检查右边界（使用更小的水平边界安全距离）
-        else if (shipRight > viewRight - BOUNDARY_MARGIN_HORIZONTAL) {
-            deltaX = (viewRight - BOUNDARY_MARGIN_HORIZONTAL) - shipRight;
-        }
-        
-        // 检查上边界
-        if (shipTop < viewTop + BOUNDARY_MARGIN) {
-            deltaY = (viewTop + BOUNDARY_MARGIN) - shipTop;
-        }
-        // 检查下边界
-        else if (shipBottom > viewBottom - BOUNDARY_MARGIN) {
-            deltaY = (viewBottom - BOUNDARY_MARGIN) - shipBottom;
-        }
-        
-        boolean insideBounds = shipLeft >= viewLeft + BOUNDARY_MARGIN_HORIZONTAL &&
-                shipRight <= viewRight - BOUNDARY_MARGIN_HORIZONTAL &&
-                shipTop >= viewTop + BOUNDARY_MARGIN &&
-                shipBottom <= viewBottom - BOUNDARY_MARGIN;
+    public void setPose(float x, float y, float headingDeg) {
+        this.offsetX = x;
+        this.offsetY = y;
+        this.headingDeg = headingDeg;
+        invalidate();
+    }
 
-        if (!insideBounds) {
-            canvasOffsetX += deltaX;
-            canvasOffsetY += deltaY;
-            manualCenterLocked = false;
-        } else if (!manualCenterLocked) {
-            canvasOffsetX *= 0.9f;
-            canvasOffsetY *= 0.9f;
-            if (Math.abs(canvasOffsetX) < 1f) canvasOffsetX = 0f;
-            if (Math.abs(canvasOffsetY) < 1f) canvasOffsetY = 0f;
+    public void setHeadingDeg(float headingDeg) {
+        this.headingDeg = headingDeg;
+        invalidate();
+    }
+
+    public void setTarget(float x, float y) {
+        this.targetPoint = new PointF(x, y);
+        invalidate();
+    }
+
+    public void clearTarget() {
+        this.targetPoint = null;
+        invalidate();
+    }
+
+    public void appendTrackPoint(float x, float y) {
+        trackPoints.add(new PointF(x, y));
+        if (trackPoints.size() > maxTrackPoints) {
+            int removeCount = trackPoints.size() - maxTrackPoints;
+            for (int i = 0; i < removeCount; i++) {
+                if (!trackPoints.isEmpty()) trackPoints.remove(0);
+            }
         }
+        invalidate();
+    }
+
+    public void clearTrack() {
+        trackPoints.clear();
+        invalidate();
+    }
+
+
+    /**
+     * @return selected stake pair as [northXRel, northYRel, southXRel, southYRel] relative to view center,
+     * or null if none selected yet.
+     */
+    public float[] getSelectedStakePairRelativeToCenter() {
+        int width = getWidth();
+        int height = getHeight();
+        if (width <= 0 || height <= 0) return null;
+
+        float[] w = getSelectedStakePairWorldInternal();
+        if (w == null) return null;
+
+        float halfW = width * 0.5f;
+        float halfH = height * 0.5f;
+        return new float[]{w[0] - halfW, w[1] - halfH, w[2] - halfW, w[3] - halfH};
+    }
+
+    /**
+     * Compute docking pose so that bow RTK matches north stake and stern RTK matches south stake.
+     * Input stake coordinates are relative to view center.
+     * @return [shipCenterXRel, shipCenterYRel, headingDeg] or null if view not ready.
+     */
+    public float[] computeDockPoseForStakePair(float northXRel, float northYRel, float southXRel, float southYRel) {
+        int width = getWidth();
+        int height = getHeight();
+        if (width <= 0 || height <= 0) return null;
+
+        // Use same sizing rule as onDraw
+        float shipHeight = height * 0.28f;
+        float rtkOffset = shipHeight * RTK_OFFSET_RATIO;
+        float d = shipHeight * 0.5f - rtkOffset; // center -> bow RTK distance
+
+        // Heading definition in this view: 0° points to screen top (north), increasing clockwise.
+        // We want bow (arrow) pointing to the north stake, so heading follows vector from south -> north.
+        float vx = northXRel - southXRel;
+        float vy = northYRel - southYRel;
+        float heading = (float) Math.toDegrees(Math.atan2(vx, -vy));
+
+        float a = (float) Math.toRadians(heading);
+        // bow RTK offset from center after rotation
+        float bowDx = (float) (Math.sin(a) * d);
+        float bowDy = (float) (-Math.cos(a) * d);
+
+        float cx = northXRel - bowDx;
+        float cy = northYRel - bowDy;
+        return new float[]{cx, cy, heading};
+    }
+
+    /**
+     * @return center -> RTK distance in current view size (used for docking error calc). Returns 0 if view not ready.
+     */
+    public float getRtkCenterOffset() {
+        int height = getHeight();
+        if (height <= 0) return 0f;
+        float shipHeight = height * 0.28f;
+        float rtkOffset = shipHeight * RTK_OFFSET_RATIO;
+        return shipHeight * 0.5f - rtkOffset;
+    }
+
+    private float[] getSelectedStakePairWorldInternal() {
+        if (selectedStakePairIndex == SELECTED_NONE) return null;
+
+        if (selectedStakePairIndex == SELECTED_FIXED_PAIR) {
+            return new float[]{stake1X, stake1Y, stake2X, stake2Y};
+        }
+
+        if (selectedStakePairIndex >= 0 && selectedStakePairIndex < stakePairs.size()) {
+            float[] pair = stakePairs.get(selectedStakePairIndex);
+            if (pair != null && pair.length >= 4) {
+                return new float[]{pair[0], pair[1], pair[2], pair[3]};
+            }
+        }
+        return null;
     }
     
     /**
@@ -469,7 +1013,6 @@ public class ShipView extends View {
      */
     public void zoomIn() {
         scaleManager.zoomIn();
-        manualCenterLocked = false;
         invalidate();
     }
     
@@ -478,13 +1021,29 @@ public class ShipView extends View {
      */
     public void zoomOut() {
         scaleManager.zoomOut();
-        manualCenterLocked = false;
         invalidate();
+    }
+
+    public float getCurrentScaleFactor() {
+        return scaleManager.getCurrentScale();
+    }
+
+    public PointF getShipCenterWorld() {
+        int width = getWidth();
+        int height = getHeight();
+        if (width <= 0 || height <= 0) return null;
+        return new PointF(width * 0.5f + offsetX, height * 0.5f + offsetY);
+    }
+
+    public float getShipHeadingDeg() {
+        return headingDeg;
     }
     
     /**
-     * 生成随机桩点对
+     * 生成均匀网格分布的桩点对
      * 每对桩点南北方向排列，距离等于RTK距离
+     * 桩点按照网格均匀分布，带有标签（如A1, B2等）
+     * 
      * @param width View宽度
      * @param height View高度
      * @param rtkDistance RTK距离
@@ -497,6 +1056,7 @@ public class ShipView extends View {
                                          float shipCenterX, float shipCenterY, 
                                          float shipWidth, float shipHeight) {
         stakePairs.clear();
+        stakeLabels.clear();
         
         // 船舶占用的区域（避免桩点与船舶重叠）
         float shipLeft = shipCenterX - shipWidth * 0.6f;
@@ -504,33 +1064,96 @@ public class ShipView extends View {
         float shipTop = shipCenterY - shipHeight * 0.6f;
         float shipBottom = shipCenterY + shipHeight * 0.6f;
         
-        // 生成随机桩点对（范围大于当前可见区域，包含被遮挡的区域）
-        for (int i = 0; i < STAKE_PAIR_COUNT; i++) {
-            float northX, northY, southX, southY;
-            int attempts = 0;
-            
-            // 尝试找到一个不与船舶重叠的位置
-            do {
-                // 随机X坐标：允许生成在可见区域外（左侧和右侧各扩展一屏）
-                northX = -width + random.nextFloat() * (width * 3f);
-                // 随机Y坐标（北侧桩子）：允许生成在可见区域外（上方和下方各扩展一屏）
-                float maxNorthY = height * 2f - rtkDistance; // 确保南侧桩子不超出下界
-                northY = -height + random.nextFloat() * (maxNorthY + height);
+        // 计算网格区域（港池安全区内）
+        float extendWorld = POOL_EXTEND_M * WORLD_UNITS_PER_METER;
+        float boundaryLeft = -extendWorld;
+        float boundaryTop = -extendWorld;
+        float boundaryRight = width + extendWorld;
+        float boundaryBottom = height + extendWorld;
+
+        float margin = Math.max(STAKE_RADIUS * 2f, 60f);
+        float regionLeft = boundaryLeft + margin;
+        float regionTop = boundaryTop + margin;
+        float regionW = Math.max(1f, (boundaryRight - boundaryLeft) - 2f * margin);
+        float regionH = Math.max(1f, (boundaryBottom - boundaryTop) - 2f * margin);
+
+        // 计算网格行列数（确保均匀分布）
+        float usableH = Math.max(1f, regionH - rtkDistance);
+        
+        // 根据目标数量计算行列
+        int totalTarget = STAKE_PAIR_COUNT;
+        float aspectRatio = regionW / usableH;
+        int cols = (int) Math.round(Math.sqrt(totalTarget * aspectRatio));
+        int rows = (int) Math.round(Math.sqrt(totalTarget / aspectRatio));
+        
+        // 确保至少有合理的行列数
+        cols = Math.max(4, Math.min(cols, 15));
+        rows = Math.max(3, Math.min(rows, 12));
+
+        float cellW = regionW / cols;
+        float cellH = usableH / rows;
+
+        // 生成均匀网格桩点对
+        int added = 0;
+        for (int r = 0; r < rows && added < totalTarget; r++) {
+            for (int c = 0; c < cols && added < totalTarget; c++) {
+                // 计算网格中心位置（均匀分布，无随机扰动）
+                float centerX = regionLeft + (c + 0.5f) * cellW;
+                float centerY = regionTop + (r + 0.5f) * cellH;
+
+                // 北桩位置（中心向上偏移半个RTK距离）
+                float northX = centerX;
+                float northY = centerY;
                 
-                // 南侧桩子（南北方向，X坐标相同，Y坐标增加rtkDistance）
-                southX = northX;  // X坐标相同，保持垂直
-                southY = northY + rtkDistance;  // Y坐标向下，形成南北方向
-                
-                attempts++;
-            } while (isStakePairOverlappingShip(northX, northY, southX, southY, 
-                                               shipLeft, shipRight, shipTop, shipBottom) 
-                    && attempts < 50);
-            
-            // 如果找到了合适的位置，添加到列表
-            if (attempts < 50) {
+                // 南桩位置（北桩向下偏移RTK距离）
+                float southX = northX;
+                float southY = northY + rtkDistance;
+
+                // 确保南桩不超出区域下界
+                if (southY > regionTop + regionH + margin) continue;
+
+                // 检查是否与船舶重叠
+                if (isStakePairOverlappingShip(northX, northY, southX, southY,
+                        shipLeft, shipRight, shipTop, shipBottom)) {
+                    continue;
+                }
+
+                // 添加桩点对
                 stakePairs.add(new float[]{northX, northY, southX, southY});
+                
+                // 生成标签（列用字母A-Z，行用数字1-N）
+                char colLabel = (char) ('A' + (c % 26));
+                String label = String.valueOf(colLabel) + (r + 1);
+                stakeLabels.add(label);
+                
+                added++;
             }
         }
+    }
+    
+    // 桩点标签列表
+    private List<String> stakeLabels = new ArrayList<>();
+    
+    /**
+     * 获取指定索引的桩点标签
+     * @param index 桩点对索引
+     * @return 标签字符串（如"A1", "B2"）
+     */
+    public String getStakeLabel(int index) {
+        if (index >= 0 && index < stakeLabels.size()) {
+            return stakeLabels.get(index);
+        }
+        return "";
+    }
+    
+    /**
+     * 获取当前选中桩点的标签
+     */
+    public String getSelectedStakeLabel() {
+        if (selectedStakePairIndex == SELECTED_FIXED_PAIR) {
+            return "固定桩";
+        }
+        return getStakeLabel(selectedStakePairIndex);
     }
     
     /**
@@ -558,23 +1181,12 @@ public class ShipView extends View {
     }
     
     /**
-     * 将视图居中到当前船舶位置（保持船舶与桩子的相对位置）
-     * 将船舶居中到当前画布的中心
+     * 将船舶重置到画布中心
      */
     public void resetPosition() {
-        // 获取当前缩放因子
         float scaleFactor = scaleManager.getCurrentScale();
-        
-        // 根据缩放因子计算画布偏移，使船舶显示在屏幕中心
-        // 船舶在世界坐标中的中心：width * 0.5f + offsetX
-        // 在屏幕坐标中显示为：canvasOffsetX + (offsetX) * scaleFactor + width * 0.5f
-        // 要让它等于 width * 0.5f（屏幕中心），需要：
-        // canvasOffsetX + offsetX * scaleFactor = 0
-        // 所以：canvasOffsetX = -offsetX * scaleFactor
         canvasOffsetX = -offsetX * scaleFactor;
         canvasOffsetY = -offsetY * scaleFactor;
-        manualCenterLocked = true;
         invalidate();
     }
 }
-

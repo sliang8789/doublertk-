@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="实时监控"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tv_monitor_placeholder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="这里展示：数据速率、最近接收时间、CRC错误、RSSI/SNR(若有)等。"
+        android:textColor="?attr/colorOnSurface" />
+
+</LinearLayout>

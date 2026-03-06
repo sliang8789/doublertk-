@@ -6,7 +6,7 @@ package com.example.doublertk.view;
 public class ScaleManager {
 
     private static final float DEFAULT_SCALE = 1f;
-    private static final float MIN_SCALE = 0.4f;
+    private static final float MIN_SCALE = 0.6f;
     private static final float MAX_SCALE = 1.6f;
     private static final float SCALE_STEP = 0.1f;
 
@@ -14,6 +14,14 @@ public class ScaleManager {
 
     public float getCurrentScale() {
         return currentScale;
+    }
+
+    public float getMinScale() {
+        return MIN_SCALE;
+    }
+
+    public float getMaxScale() {
+        return MAX_SCALE;
     }
 
     public void resetScale() {

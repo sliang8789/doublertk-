@@ -16,6 +16,8 @@ import androidx.appcompat.app.AlertDialog;
 
 import com.example.doublertk.R;
 import com.example.doublertk.base.BaseActivity;
+import com.example.doublertk.data.CoordinateTransformResult;
+import com.example.doublertk.data.CoordinateTransformService;
 
 // TODO: 以下导入的类需要实现或替换
 // import com.example.doublertk.app.GnssCore;
@@ -45,6 +47,7 @@ public class PointMeasureMainActivity extends BaseActivity {
     private android.widget.TextView tvNorth, tvEast, tvHeight;
     private android.widget.TextView tvLat, tvLon, tvHgt;
     private Spinner spinnerMeasureMode;
+    private CoordinateTransformService coordinateTransformService;
     // TODO: 以下字段需要对应的类实现
     // private KnownPointRepository knownPointRepository;
     // private CoordinateSystemManager coordinateSystemManager;
@@ -72,6 +75,8 @@ public class PointMeasureMainActivity extends BaseActivity {
         // TODO: init repos（这些类需要实现）
         // knownPointRepository = new KnownPointRepository(getApplication());
         // coordinateSystemManager = new CoordinateSystemManager(this);
+
+        coordinateTransformService = new CoordinateTransformService(this);
 
         tvNorth = findViewById(R.id.tv_north);
         tvEast = findViewById(R.id.tv_east);

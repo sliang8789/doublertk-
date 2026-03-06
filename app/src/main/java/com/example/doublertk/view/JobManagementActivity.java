@@ -1,5 +1,7 @@
 package com.example.doublertk.view;
 
+import android.content.Intent;
+import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -17,11 +19,24 @@ import com.example.doublertk.R;
 import com.example.doublertk.base.BaseActivity;
 import com.example.doublertk.data.Job;
 import com.example.doublertk.data.JobRepository;
+import com.example.doublertk.dwg.DwgDxfParser;
+import com.example.doublertk.dwg.DxfOverlayResult;
+import com.example.doublertk.dwg.EntityInfo;
+import com.example.doublertk.dwg.LayerInfo;
+import com.example.doublertk.dwg.ParseResult;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -30,12 +45,18 @@ public class JobManagementActivity extends BaseActivity {
     private EditText etJobName;
     private TextView tvJobTime;
     private Button btnSaveJob;
+    private Button btnImportDxf;
+    private TextView tvDxfPath;
+    private TextView tvDxfStatus;
     private RecyclerView rvJobList;
     private TextView tvEmptyState;
 
     private JobListAdapter adapter;
     private JobRepository jobRepository;
     private SimpleDateFormat dateFormat;
+
+    private String selectedDxfAssetName;
+    private String selectedDxfLocalPath;
 
     @Override
     protected int getLayoutId() {
@@ -44,7 +65,7 @@ public class JobManagementActivity extends BaseActivity {
 
     @Override
     protected void initView() {
-        setTopBarTitle("作业管理");
+        setTopBarTitle(getString(R.string.job_management_title));
 
         initViews();
         initData();
@@ -57,6 +78,9 @@ public class JobManagementActivity extends BaseActivity {
         etJobName = findViewById(R.id.et_job_name);
         tvJobTime = findViewById(R.id.tv_job_time);
         btnSaveJob = findViewById(R.id.btn_save_job);
+        btnImportDxf = findViewById(R.id.btn_import_dxf);
+        tvDxfPath = findViewById(R.id.tv_dxf_path);
+        tvDxfStatus = findViewById(R.id.tv_dxf_status);
         rvJobList = findViewById(R.id.rv_job_list);
         tvEmptyState = findViewById(R.id.tv_empty_state);
 
@@ -75,11 +99,183 @@ public class JobManagementActivity extends BaseActivity {
         // 保存作业按钮
         btnSaveJob.setOnClickListener(v -> saveJob());
 
+        if (btnImportDxf != null) {
+            btnImportDxf.setOnClickListener(v -> openBuiltInDxfPicker());
+        }
+
         // 适配器管理按钮点击监听
         adapter.setOnManageClickListener((job, position, anchorView) -> {
             showManageOptionsDialog(job, position);
         });
     }
+
+    private void openBuiltInDxfPicker() {
+        String[] dxfAssets;
+        try {
+            dxfAssets = listDxfAssets();
+        } catch (IOException e) {
+            Toast.makeText(this, "读取内置DXF列表失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (dxfAssets.length == 0) {
+            Toast.makeText(this, "assets 中未找到 DXF 文件", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("选择内置DXF");
+        builder.setItems(dxfAssets, (dialog, which) -> {
+            if (which < 0 || which >= dxfAssets.length) return;
+            importDxfFromAssets(dxfAssets[which]);
+        });
+        builder.setNegativeButton(getString(R.string.job_cancel), null);
+        builder.show();
+    }
+
+     private String[] listDxfAssets() throws IOException {
+         AssetManager am = getAssets();
+         String[] names = am.list("");
+         if (names == null) return new String[0];
+
+         List<String> result = new ArrayList<>();
+         for (String n : names) {
+             if (n == null) continue;
+             String lower = n.toLowerCase(Locale.ROOT);
+             if (lower.endsWith(".dxf")) {
+                 result.add(n);
+             }
+         }
+         Collections.sort(result);
+         return result.toArray(new String[0]);
+     }
+
+     private void importDxfFromAssets(String assetName) {
+         selectedDxfAssetName = assetName;
+         if (tvDxfStatus != null) tvDxfStatus.setText("正在导入: " + assetName);
+
+         new Thread(() -> {
+             try {
+                 File localFile = copyAssetToCache(assetName);
+                 selectedDxfLocalPath = localFile.getAbsolutePath();
+
+                 ParseResult parseResult;
+                 try (InputStream is = getAssets().open(assetName)) {
+                     parseResult = DwgDxfParser.parseDxfStream(is);
+                 }
+
+                 int pointCount = 0;
+                 int linkCount = 0;
+                 try (InputStream is = getAssets().open(assetName)) {
+                     DxfOverlayResult overlay = DwgDxfParser.parseDxfToOverlay(is);
+                     pointCount = overlay.getPoints() == null ? 0 : overlay.getPoints().size();
+                     linkCount = overlay.getLinks() == null ? 0 : overlay.getLinks().size();
+                 }
+
+                 String details = buildDxfDetailsText(parseResult);
+                 String summary = buildDxfSummaryText(parseResult, pointCount, linkCount);
+
+                 int finalPointCount = pointCount;
+                 int finalLinkCount = linkCount;
+                 runOnUiThread(() -> {
+                     if (tvDxfPath != null) tvDxfPath.setText(selectedDxfLocalPath);
+                     if (tvDxfStatus != null) {
+                         tvDxfStatus.setText(summary);
+                     }
+
+                     AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                     builder.setTitle("DXF解析结果");
+                     builder.setMessage(details);
+                     builder.setPositiveButton("确定", null);
+                     
+                     // 添加"查看渲染"按钮
+                     if (parseResult != null && parseResult.getEntities() != null && !parseResult.getEntities().isEmpty()) {
+                         builder.setNeutralButton("查看渲染", (dialog, which) -> {
+                             // 打开DXF查看器Activity
+                             Intent intent = new Intent(this, DxfViewerActivity.class);
+                             intent.putExtra("dxf_path", selectedDxfLocalPath);
+                             startActivity(intent);
+                         });
+                     }
+                     
+                     builder.show();
+                 });
+             } catch (Exception e) {
+                 runOnUiThread(() -> {
+                     if (tvDxfStatus != null) tvDxfStatus.setText("导入失败: " + e.getMessage());
+                     Toast.makeText(this, "DXF导入失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                 });
+             }
+         }).start();
+     }
+
+     private String buildDxfSummaryText(ParseResult result, int pointCount, int linkCount) {
+         int layerCount = result == null || result.getLayers() == null ? 0 : result.getLayers().size();
+         int entityTypeCount = uniqueEntityTypes(result).size();
+         return "导入完成: 图层=" + layerCount + " 实体类型=" + entityTypeCount + " 点=" + pointCount + " 线=" + linkCount;
+     }
+
+     private String buildDxfDetailsText(ParseResult result) {
+         StringBuilder sb = new StringBuilder();
+         if (result == null) {
+             sb.append("解析失败：result 为空");
+             return sb.toString();
+         }
+
+         List<LayerInfo> layers = result.getLayers();
+         Set<String> entityTypes = uniqueEntityTypes(result);
+
+         sb.append("文件: ").append(selectedDxfAssetName == null ? "" : selectedDxfAssetName).append("\n");
+         sb.append("是否识别为DXF: ").append(result.isSuccess()).append("\n\n");
+
+         sb.append("图层 (" + (layers == null ? 0 : layers.size()) + "):\n");
+         if (layers != null && !layers.isEmpty()) {
+             for (LayerInfo l : layers) {
+                 if (l == null) continue;
+                 sb.append("- ").append(l.getName() == null ? "" : l.getName()).append("\n");
+             }
+         }
+         sb.append("\n");
+
+         sb.append("实体类型 (" + entityTypes.size() + "):\n");
+         if (!entityTypes.isEmpty()) {
+             for (String t : entityTypes) {
+                 sb.append("- ").append(t).append("\n");
+             }
+         }
+
+         if (!result.isSuccess() && !TextUtils.isEmpty(result.getErrorMessage())) {
+             sb.append("\n错误: ").append(result.getErrorMessage());
+         }
+
+         return sb.toString();
+     }
+
+     private Set<String> uniqueEntityTypes(ParseResult result) {
+         Set<String> set = new LinkedHashSet<>();
+         if (result == null || result.getEntities() == null) return set;
+         for (EntityInfo e : result.getEntities()) {
+             if (e == null) continue;
+             if (!TextUtils.isEmpty(e.getType())) {
+                 set.add(e.getType());
+             }
+         }
+         return set;
+     }
+
+     private File copyAssetToCache(String assetName) throws IOException {
+         File out = new File(getCacheDir(), assetName);
+         try (InputStream is = getAssets().open(assetName);
+              FileOutputStream os = new FileOutputStream(out)) {
+             byte[] buf = new byte[8 * 1024];
+             int len;
+             while ((len = is.read(buf)) != -1) {
+                 os.write(buf, 0, len);
+             }
+             os.flush();
+         }
+         return out;
+     }
 
     /**
      * 更新作业时间显示（自动获取系统时间）

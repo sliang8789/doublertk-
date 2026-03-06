@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="日志"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tv_log_placeholder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="这里展示：连接日志、RTCM类型统计/原始数据、错误信息等。"
+        android:textColor="?attr/colorOnSurface" />
+
+</LinearLayout>
