@@ -23,14 +23,12 @@ jobs:
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-      working-directory: main/doublertk
 
     - name: Build with Gradle
       run: ./gradlew assembleDebug
-      working-directory: main/doublertk
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: app-debug
-        path: main/doublertk/app/build/outputs/apk/debug/app-debug.apk
+        path: app/build/outputs/apk/debug/app-debug.apk
