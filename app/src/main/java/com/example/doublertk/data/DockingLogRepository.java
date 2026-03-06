@@ -3,6 +3,7 @@ package com.example.doublertk.data;
 import android.content.Context;
 
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -26,161 +27,276 @@ public class DockingLogRepository {
      * 插入停靠日志
      */
     public Future<Long> insert(DockingLog log) {
-        return dockingLogDao.insert(log);
+        return executorService.submit(new Callable<Long>() {
+            @Override
+            public Long call() {
+                return dockingLogDao.insert(log);
+            }
+        });
     }
 
     /**
      * 更新停靠日志
      */
     public Future<Integer> update(DockingLog log) {
-        return dockingLogDao.update(log);
+        return executorService.submit(new Callable<Integer>() {
+            @Override
+            public Integer call() {
+                return dockingLogDao.update(log);
+            }
+        });
     }
 
     /**
      * 删除停靠日志
      */
     public Future<Integer> delete(DockingLog log) {
-        return dockingLogDao.delete(log);
+        return executorService.submit(new Callable<Integer>() {
+            @Override
+            public Integer call() {
+                return dockingLogDao.delete(log);
+            }
+        });
     }
 
     /**
      * 根据ID查询停靠日志
      */
     public Future<DockingLog> getById(long id) {
-        return dockingLogDao.getById(id);
+        return executorService.submit(new Callable<DockingLog>() {
+            @Override
+            public DockingLog call() {
+                return dockingLogDao.getById(id);
+            }
+        });
     }
 
     /**
      * 获取所有停靠日志
      */
     public Future<List<DockingLog>> getAllLogs() {
-        return dockingLogDao.getAllLogs();
+        return executorService.submit(new Callable<List<DockingLog>>() {
+            @Override
+            public List<DockingLog> call() {
+                return dockingLogDao.getAllLogs();
+            }
+        });
     }
 
     /**
      * 根据作业ID查询停靠日志
      */
     public Future<List<DockingLog>> getLogsByJobId(long jobId) {
-        return dockingLogDao.getLogsByJobId(jobId);
+        return executorService.submit(new Callable<List<DockingLog>>() {
+            @Override
+            public List<DockingLog> call() {
+                return dockingLogDao.getLogsByJobId(jobId);
+            }
+        });
     }
 
     /**
      * 根据状态查询停靠日志
      */
     public Future<List<DockingLog>> getLogsByStatus(String status) {
-        return dockingLogDao.getLogsByStatus(status);
+        return executorService.submit(new Callable<List<DockingLog>>() {
+            @Override
+            public List<DockingLog> call() {
+                return dockingLogDao.getLogsByStatus(status);
+            }
+        });
     }
 
     /**
      * 查询成功的停靠日志
      */
     public Future<List<DockingLog>> getSuccessLogs() {
-        return dockingLogDao.getSuccessLogs();
+        return executorService.submit(new Callable<List<DockingLog>>() {
+            @Override
+            public List<DockingLog> call() {
+                return dockingLogDao.getSuccessLogs();
+            }
+        });
     }
 
     /**
      * 查询失败的停靠日志
      */
     public Future<List<DockingLog>> getFailedLogs() {
-        return dockingLogDao.getFailedLogs();
+        return executorService.submit(new Callable<List<DockingLog>>() {
+            @Override
+            public List<DockingLog> call() {
+                return dockingLogDao.getFailedLogs();
+            }
+        });
     }
 
     /**
      * 查询指定时间范围内的停靠日志
      */
     public Future<List<DockingLog>> getLogsByTimeRange(long startTime, long endTime) {
-        return dockingLogDao.getLogsByTimeRange(startTime, endTime);
+        return executorService.submit(new Callable<List<DockingLog>>() {
+            @Override
+            public List<DockingLog> call() {
+                return dockingLogDao.getLogsByTimeRange(startTime, endTime);
+            }
+        });
     }
 
     /**
      * 获取停靠日志总数
      */
     public Future<Integer> getLogCount() {
-        return dockingLogDao.getLogCount();
+        return executorService.submit(new Callable<Integer>() {
+            @Override
+            public Integer call() {
+                return dockingLogDao.getLogCount();
+            }
+        });
     }
 
     /**
      * 获取成功停靠次数
      */
     public Future<Integer> getSuccessCount() {
-        return dockingLogDao.getSuccessCount();
+        return executorService.submit(new Callable<Integer>() {
+            @Override
+            public Integer call() {
+                return dockingLogDao.getSuccessCount();
+            }
+        });
     }
 
     /**
      * 获取失败停靠次数
      */
     public Future<Integer> getFailedCount() {
-        return dockingLogDao.getFailedCount();
+        return executorService.submit(new Callable<Integer>() {
+            @Override
+            public Integer call() {
+                return dockingLogDao.getFailedCount();
+            }
+        });
     }
 
     /**
      * 计算平均停靠时间
      */
     public Future<Long> getAverageDuration() {
-        return dockingLogDao.getAverageDuration();
+        return executorService.submit(new Callable<Long>() {
+            @Override
+            public Long call() {
+                return dockingLogDao.getAverageDuration();
+            }
+        });
     }
 
     /**
      * 计算平均船头误差
      */
     public Future<Double> getAverageBowError() {
-        return dockingLogDao.getAverageBowError();
+        return executorService.submit(new Callable<Double>() {
+            @Override
+            public Double call() {
+                return dockingLogDao.getAverageBowError();
+            }
+        });
     }
 
     /**
      * 计算平均船尾误差
      */
     public Future<Double> getAverageSternError() {
-        return dockingLogDao.getAverageSternError();
+        return executorService.submit(new Callable<Double>() {
+            @Override
+            public Double call() {
+                return dockingLogDao.getAverageSternError();
+            }
+        });
     }
 
     /**
      * 计算平均航向误差
      */
     public Future<Double> getAverageHeadingError() {
-        return dockingLogDao.getAverageHeadingError();
+        return executorService.submit(new Callable<Double>() {
+            @Override
+            public Double call() {
+                return dockingLogDao.getAverageHeadingError();
+            }
+        });
     }
 
     /**
      * 删除所有停靠日志
      */
     public Future<Integer> deleteAll() {
-        return dockingLogDao.deleteAll();
+        return executorService.submit(new Callable<Integer>() {
+            @Override
+            public Integer call() {
+                return dockingLogDao.deleteAll();
+            }
+        });
     }
 
     /**
      * 删除指定时间之前的日志
      */
     public Future<Integer> deleteOldLogs(long timestamp) {
-        return dockingLogDao.deleteOldLogs(timestamp);
+        return executorService.submit(new Callable<Integer>() {
+            @Override
+            public Integer call() {
+                return dockingLogDao.deleteOldLogs(timestamp);
+            }
+        });
     }
 
     /**
      * 获取最近N条日志
      */
     public Future<List<DockingLog>> getRecentLogs(int limit) {
-        return dockingLogDao.getRecentLogs(limit);
+        return executorService.submit(new Callable<List<DockingLog>>() {
+            @Override
+            public List<DockingLog> call() {
+                return dockingLogDao.getRecentLogs(limit);
+            }
+        });
     }
 
     /**
      * 根据作业名称搜索日志
      */
     public Future<List<DockingLog>> searchByJobName(String keyword) {
-        return dockingLogDao.searchByJobName(keyword);
+        return executorService.submit(new Callable<List<DockingLog>>() {
+            @Override
+            public List<DockingLog> call() {
+                return dockingLogDao.searchByJobName(keyword);
+            }
+        });
     }
 
     /**
      * 获取指定作业的成功率
      */
     public Future<Double> getSuccessRateByJobId(long jobId) {
-        return dockingLogDao.getSuccessRateByJobId(jobId);
+        return executorService.submit(new Callable<Double>() {
+            @Override
+            public Double call() {
+                return dockingLogDao.getSuccessRateByJobId(jobId);
+            }
+        });
     }
 
     /**
      * 获取总体成功率
      */
     public Future<Double> getOverallSuccessRate() {
-        return dockingLogDao.getOverallSuccessRate();
+        return executorService.submit(new Callable<Double>() {
+            @Override
+            public Double call() {
+                return dockingLogDao.getOverallSuccessRate();
+            }
+        });
     }
 
     /**
